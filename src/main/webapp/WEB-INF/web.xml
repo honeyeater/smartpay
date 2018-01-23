@@ -182,7 +182,7 @@
 		<session-timeout>30</session-timeout>
 	</session-config>
 	<welcome-file-list>
-		<welcome-file>/webpage/login/login.jsp</welcome-file>
+		<welcome-file>/webpage/webfront/login.jsp</welcome-file>
 	</welcome-file-list>
 
 </web-app>

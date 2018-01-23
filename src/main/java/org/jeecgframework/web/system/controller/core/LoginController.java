@@ -151,6 +151,7 @@ public class LoginController extends BaseController{
 					attrMap.put("orgNum", 1);
 					saveLoginSuccessInfo(req, u, orgId);
 				}
+                session.setAttribute(ResourceUtil.CURRENT_CLINET_USER, "1");
 			} else {
 
 				j.setMsg(mutiLangService.getLang("common.lock.user"));
@@ -245,8 +246,8 @@ public class LoginController extends BaseController{
 	 */
 	@RequestMapping(params = "login")
 	public String login(ModelMap modelMap,HttpServletRequest request,HttpServletResponse response) {
-		TSUser user = ResourceUtil.getSessionUser();
-		String roles = "";
+        TSUser user = ResourceUtil.getSessionUser();
+        String roles = "";
 		if (user != null) {
 			List<TSRoleUser> rUsers = systemService.findByProperty(TSRoleUser.class, "TSUser.id", user.getId());
 			for (TSRoleUser ru : rUsers) {

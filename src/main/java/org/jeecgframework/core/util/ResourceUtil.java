@@ -10,16 +10,12 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import org.apache.commons.lang.StringUtils;
 import org.jeecgframework.core.constant.DataBaseConstant;
 import org.jeecgframework.web.system.manager.ClientManager;
-import org.jeecgframework.web.system.pojo.base.Client;
-import org.jeecgframework.web.system.pojo.base.DynamicDataSourceEntity;
-import org.jeecgframework.web.system.pojo.base.TSIcon;
-import org.jeecgframework.web.system.pojo.base.TSRoleFunction;
-import org.jeecgframework.web.system.pojo.base.TSType;
-import org.jeecgframework.web.system.pojo.base.TSTypegroup;
-import org.jeecgframework.web.system.pojo.base.TSUser;
+import org.jeecgframework.web.system.manager.FrontClientManager;
+import org.jeecgframework.web.system.pojo.base.*;
 
 
 /**
@@ -27,7 +23,10 @@ import org.jeecgframework.web.system.pojo.base.TSUser;
  * 
  */
 public class ResourceUtil {
-	public static final String LOCAL_CLINET_USER = "LOCAL_CLINET_USER";
+
+    public static final String CURRENT_CLINET_USER = "CURRENT_CLINET_USER";
+    public static final String LOCAL_CLINET_USER = "LOCAL_CLINET_USER";
+	public static final String FRONT_CLINET_USER = "FRONT_CLINET_USER";
 	/**
 	 * 缓存字段分组【缓存】
 	 */
@@ -61,6 +60,18 @@ public class ResourceUtil {
 //	public final static boolean fuzzySearch= ResourceUtil.isFuzzySearch();
 
 
+    /**
+     * 获取session当前登录的是前端还是后端用户
+     * 2-前端用户 1-后端用户
+     * @return
+     */
+    public static final String getCurrentSessionUser() {
+        HttpSession session = ContextHolderUtils.getSession();
+        String currentUserFlag = "";
+        currentUserFlag = (String) session.getAttribute(ResourceUtil.CURRENT_CLINET_USER);
+        return currentUserFlag;
+    }
+
 	/**
 	 * 获取session定义名称
 	 * 
@@ -85,6 +96,26 @@ public class ResourceUtil {
 
 		return null;
 	}
+
+    /**
+     * 获取前端用户的Session
+     * @return
+     */
+    public static final FrontUserRegisterEntity getSessionFrontUser() {
+        HttpSession session = ContextHolderUtils.getSession();
+        if(FrontClientManager.getInstance().getClient(session.getId()+"front")!=null){
+            return FrontClientManager.getInstance().getClient(session.getId()+"front").getUser();
+        }else{
+            FrontUserRegisterEntity u = (FrontUserRegisterEntity) session.getAttribute(ResourceUtil.FRONT_CLINET_USER);
+            FrontClient client = new FrontClient();
+            client.setIp("");
+            client.setLogindatetime(new Date());
+            client.setUser(u);
+            FrontClientManager.getInstance().addClinet(session.getId()+"front", client);
+        }
+        return null;
+    }
+
 	@Deprecated
 	public static final List<TSRoleFunction> getSessionTSRoleFunction(String roleId) {
 		HttpSession session = ContextHolderUtils.getSession();

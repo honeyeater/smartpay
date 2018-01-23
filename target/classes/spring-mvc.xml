@@ -12,7 +12,7 @@
    		http://cxf.apache.org/schemas/jaxws.xsd">
 	<!-- 自动扫描controller包下的所有类，使其认为spring mvc的控制器 -->
 	<!-- 加载controller的时候,不加载service,因为此时事物并未生效,若此时加载了service,那么事物无法对service进行拦截 -->
-	<context:component-scan base-package="org.jeecgframework.web.*,com.jeecg.*">
+	<context:component-scan base-package="org.jeecgframework.web.*,com.jeecg.*,com.mocott.smp.*">
 		<context:exclude-filter type="annotation"
 			expression="org.springframework.stereotype.Service" />
 	</context:component-scan>
@@ -117,6 +117,13 @@
 						<value>loginController.do?login3</value>
 						<value>loginController.do?checkuser</value>
 						<value>loginController.do?checkuser=</value>
+						<value>userLoginController.do?goPwdInit</value>
+						<value>userLoginController.do?pwdInit</value>
+						<value>userLoginController.do?login</value>
+						<value>userLoginController.do?logout</value>
+						<value>userLoginController.do?changeDefaultOrg</value>
+						<value>userLoginController.do?checkuser</value>
+						<value>userLoginController.do?checkuser=</value>
 						<value>repairController.do?repair</value>
 						<value>systemController.do?saveFiles</value>
 						<value>repairController.do?deleteAndRepair</value>

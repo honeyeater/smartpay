@@ -9,6 +9,8 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import org.hibernate.Session;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import org.jeecgframework.core.constant.Globals;
@@ -84,12 +86,19 @@ public class SystemServiceImpl extends CommonServiceImpl implements SystemServic
 		/* end dangzhenghui 201703016TASK #1784 【online bug】Online 表单保存的时候，报错*/
 //		log.setTSUser(ResourceUtil.getSessionUser());
 		/*start chenqian 201708031TASK #2317 【改造】系统日志表，增加两个字段，避免关联查询 [操作人账号] [操作人名字]*/
-		TSUser u = ResourceUtil.getSessionUser();
-		log.setUserid(u.getId());
-		log.setUsername(u.getUserName());
-		log.setRealname(u.getRealName());
-
-		commonDao.save(log);
+		if("2".equalsIgnoreCase(ResourceUtil.getCurrentSessionUser())) {
+            FrontUserRegisterEntity u = ResourceUtil.getSessionFrontUser();
+            log.setUserid(u.getId());
+            log.setUsername(u.getUserName());
+            log.setRealname(u.getRealname());
+            commonDao.save(log);
+        } else if("1".equalsIgnoreCase(ResourceUtil.getCurrentSessionUser())) {
+            TSUser u = ResourceUtil.getSessionUser();
+            log.setUserid(u.getId());
+            log.setUsername(u.getUserName());
+            log.setRealname(u.getRealName());
+            commonDao.save(log);
+        }
 	}
 
 	/**

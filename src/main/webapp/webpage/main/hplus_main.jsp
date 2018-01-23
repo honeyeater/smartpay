@@ -16,8 +16,8 @@
 
     <title><t:mutiLang langKey="jeect.platform"/></title>
 
-    <meta name="keywords" content="智能交易平台">
-    <meta name="description" content="金润-智能交易平台">
+    <meta name="keywords" content="金润智能理财平台">
+    <meta name="description" content="金润智能理财平台">
 
     <link rel="shortcut icon" href="images/favicon.ico">
     <link href="plug-in-ui/hplus/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">

@@ -978,6 +978,7 @@
 	                    <uriEncoding>UTF-8</uriEncoding>
 	                    <url>http://localhost:8080/manager/html</url>
 	                    <server>tomcat6</server>
+
 	                </configuration>
 	            </plugin>
 	        <plugin>  

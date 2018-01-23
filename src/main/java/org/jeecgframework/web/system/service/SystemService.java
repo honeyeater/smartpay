@@ -45,6 +45,7 @@ public interface SystemService extends CommonService{
 	 * @param TUser 操作人
 	 */
 	public void addLog(String LogContent, Short loglevel,Short operatetype);
+
 	/**
 	 * 根据类型编码和类型名称获取Type,如果为空则创建一个
 	 * @param typecode

@@ -1,5 +1,7 @@
 package org.jeecgframework.web.system.pojo.base;
 
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ public class Client implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private TSUser user;
+	private FrontUserRegisterEntity frontUser;
 
 	private Map<String, TSFunction> functions;
 	private Map<Integer, List<TSFunction>> functionMap;
@@ -69,4 +72,11 @@ public class Client implements java.io.Serializable {
 	}
 
 
+    public FrontUserRegisterEntity getFrontUser() {
+        return frontUser;
+    }
+
+    public void setFrontUser(FrontUserRegisterEntity frontUser) {
+        this.frontUser = frontUser;
+    }
 }
