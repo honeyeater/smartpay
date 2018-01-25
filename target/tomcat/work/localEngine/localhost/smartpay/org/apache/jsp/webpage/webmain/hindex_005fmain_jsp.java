@@ -102,6 +102,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
       out.write("    <link href=\"plug-in/webfront/css/common.css\" rel=\"stylesheet\">\r\n");
       out.write("    <script src=\"plug-in/ace/assets/js/jquery-2.0.3.min.js\"></script>\r\n");
       out.write("    <script src=\"plug-in/bootstrap3/js/bootstrap.min.js\"></script>\r\n");
+      out.write("    <style>\r\n");
+      out.write("        @media (min-width: 768px) {\r\n");
+      out.write("            body {\r\n");
+      out.write("                padding-top: 82px;\r\n");
+      out.write("            }\r\n");
+      out.write("        }\r\n");
+      out.write("    </style>\r\n");
       out.write("</head>\r\n");
       out.write("<body>\r\n");
       out.write("<!--页面头部导航-->\r\n");
@@ -116,7 +123,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
       out.write("                    <span class=\"icon-bar\"></span>\r\n");
       out.write("                    <span class=\"icon-bar\"></span>\r\n");
       out.write("                </button>\r\n");
-      out.write("                <a class=\"navbar-brand\" href=\"#\">理财社区</a>\r\n");
+      out.write("                <a class=\"navbar-brand\" href=\"#\" style=\"font-size: 28px;\">理财社区</a>\r\n");
       out.write("            </div>\r\n");
       out.write("            <div class=\"collapse navbar-collapse\" id=\"bs-example-navbar-collapse-1\">\r\n");
       out.write("                <ul class=\"nav navbar-nav navbar-right\">\r\n");
@@ -202,6 +209,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
       out.write("                    <a href=\"https://www.vipzftaab.com/index/adList/\"><img class=\"img-circle navImg\"\r\n");
       out.write("                                                                           src=\"https://www.vipzftaab.com//t/images/navImg/8.png\"></a>\r\n");
       out.write("                    <h5><strong>新闻公告</strong></h5>\r\n");
+      out.write("                </div>\r\n");
+      out.write("                <div class=\"col-sm-4 col-xs-4\" style=\"text-align: center\">\r\n");
+      out.write("                    <a href=\"frontUserRegisterController.do?register\"><img class=\"img-circle navImg\"\r\n");
+      out.write("                                                                           src=\"https://www.vipzftaab.com//t/images/navImg/8.png\"></a>\r\n");
+      out.write("                    <h5><strong>用户注册</strong></h5>\r\n");
       out.write("                </div>\r\n");
       out.write("            </div>\r\n");
       out.write("        </div>\r\n");

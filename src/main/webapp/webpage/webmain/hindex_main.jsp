@@ -15,6 +15,13 @@
     <link href="plug-in/webfront/css/common.css" rel="stylesheet">
     <script src="plug-in/ace/assets/js/jquery-2.0.3.min.js"></script>
     <script src="plug-in/bootstrap3/js/bootstrap.min.js"></script>
+    <style>
+        @media (min-width: 768px) {
+            body {
+                padding-top: 82px;
+            }
+        }
+    </style>
 </head>
 <body>
 <!--页面头部导航-->
@@ -29,7 +36,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">理财社区</a>
+                <a class="navbar-brand" href="#" style="font-size: 28px;">理财社区</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
@@ -115,6 +122,11 @@
                     <a href="https://www.vipzftaab.com/index/adList/"><img class="img-circle navImg"
                                                                            src="https://www.vipzftaab.com//t/images/navImg/8.png"></a>
                     <h5><strong>新闻公告</strong></h5>
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="frontUserRegisterController.do?register"><img class="img-circle navImg"
+                                                                           src="https://www.vipzftaab.com//t/images/navImg/8.png"></a>
+                    <h5><strong>用户注册</strong></h5>
                 </div>
             </div>
         </div>

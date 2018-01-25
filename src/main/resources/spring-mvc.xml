@@ -131,6 +131,7 @@
 						<!--移动图表-->
 						<value>cgDynamGraphController.do?design</value>
 						<value>cgDynamGraphController.do?datagrid</value>
+						<value>frontUserRegisterController.do?register</value>
 						<!--online表单对外接口-->
 						<!--<value>cgFormDataController.do?getFormInfo</value>
 						<value>cgFormDataController.do?deleteFormInfo</value>

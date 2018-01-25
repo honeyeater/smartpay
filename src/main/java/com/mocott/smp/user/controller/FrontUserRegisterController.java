@@ -87,8 +87,16 @@ public class FrontUserRegisterController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
 
+    /**
+     * 用户注册页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "register")
+    public ModelAndView register(HttpServletRequest request) {
+        return new ModelAndView("/smp/user/frontUserRegister");
+    }
 
 	/**
 	 * 注册用户信息表列表 页面跳转
