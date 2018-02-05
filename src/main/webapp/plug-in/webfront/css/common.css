@@ -1,7 +1,10 @@
 /**********  所有页面都要共用的样式  **********/
 /**定义基础样式**/
 body {
-    background: #888;
+    padding-top: 82px;
+    height: 100%;
+    background: url("../images/bg.png");
+    font-family: "microsoft Yahei", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {

@@ -208,7 +208,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
       out.write("                                            </button>\r\n");
       out.write("                                        </div>\r\n");
       out.write("\r\n");
-      out.write("\r\n");
       out.write("                                        <div class=\"clearfix\">\r\n");
       out.write("                                            <div style=\"float: right;margin-right: 10px;\">\r\n");
       out.write("                                                <label class=\"inline\">\r\n");

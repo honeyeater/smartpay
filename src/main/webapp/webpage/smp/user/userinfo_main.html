@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <title>个人资料信息</title>
+    <meta name="keywords" content="理财">
+    <meta name="description" content="一家专门从事理财的交易网站">
+    <!--bootstrape-->
+    <link href="../plug-in/bootstrap3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../plug-in/webfront/css/common.css" rel="stylesheet">
+    <script src="../plug-in/jquery/jquery-2.0.3.min.js"></script>
+    <script src="../plug-in/bootstrap3/js/bootstrap.min.js"></script>
+    <style>
+        @media (min-width: 768px) {
+            body {
+                padding-top: 82px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--页面头部导航-->
+<div id="header">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#" style="font-size: 28px;">理财社区</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="active"><a href="#">系统首页</a></li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" aria-labelledby="personmanager" data-toggle="dropdown"
+                           role="button" aria-expanded="true" aria-haspopup="true">个人管理</a>
+                        <ul class="dropdown-menu dropdown-menu-left">
+                            <li><a href="http://www.baidu.com">个人资料</a></li>
+                            <li><a href="http://www.sina.com.cn">修改密码</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">会员中心</a></li>
+                    <li><a href="#">财务管理</a></li>
+                    <li><a href="#">市场管理</a></li>
+                    <li><a href="#">公告留言</a></li>
+                    <li><a href="#">常见问题</a></li>
+                    <li><a href="#" onclick="logout();">安全退出</a></li>
+                    <li><a href="#">HELLO</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<div id="content">
+    <div class="container">
+        <div class="row" style="padding-top: 10px;color: white">
+            <div class="col-lg-4">
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/provideList/"><img class="img-circle navImg"
+                                                                                src="https://www.vipzftaab.com//t/images/navImg/7.png"></a>
+                    <h5><strong>注资列表</strong></h5>
+
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/acceptList/"><img class="img-circle navImg"
+                                                                               src="https://www.vipzftaab.com//t/images/navImg/6.png"></a>
+                    <h5><strong>提现列表</strong></h5>
+
+
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/logList/"><img class="img-circle navImg"
+                                                                            src="https://www.vipzftaab.com//t/images/navImg/2.png"></a>
+                    <h5><strong>财务明细</strong></h5>
+
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/register/"><img class="img-circle navImg"
+                                                                             src="https://www.vipzftaab.com//t/images/navImg/3.png"></a>
+                    <h5><strong>注册会员</strong></h5>
+
+
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/dList/"><img class="img-circle navImg"
+                                                                          src="https://www.vipzftaab.com//t/images/navImg/4.png"></a>
+                    <h5><strong>推荐列表</strong></h5>
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/teamList/"><img class="img-circle navImg"
+                                                                             src="https://www.vipzftaab.com//t/images/navImg/9.png"></a>
+                    <h5><strong>团队业绩</strong></h5>
+                </div>
+
+
+            </div>
+            <div class="col-lg-4">
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/codeList/"><img class="img-circle navImg"
+                                                                             src="https://www.vipzftaab.com//t/images/navImg/1.png"></a>
+                    <h5><strong>激活码管理</strong></h5>
+
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/sendMsg/"><img class="img-circle navImg"
+                                                                            src="https://www.vipzftaab.com//t/images/navImg/5.png"></a>
+                    <h5><strong>问题反馈</strong></h5>
+                </div>
+                <div class="col-sm-4 col-xs-4" style="text-align: center">
+                    <a href="https://www.vipzftaab.com/index/adList/"><img class="img-circle navImg"
+                                                                           src="https://www.vipzftaab.com//t/images/navImg/8.png"></a>
+                    <h5><strong>新闻公告</strong></h5>
+                </div>
+                <!--<div class="col-sm-4 col-xs-4" style="text-align: center">-->
+                    <!--<a href="frontUserRegisterController.do?register"><img class="img-circle navImg"-->
+                                                                           <!--src="https://www.vipzftaab.com//t/images/navImg/8.png"></a>-->
+                    <!--<h5><strong>用户注册</strong></h5>-->
+                <!--</div>-->
+            </div>
+        </div>
+    </div>
+    <div class="process" id="panelloadingDiv"><b>&nbsp;</b></div>
+    <div class="container">
+        <div class="row">
+            <ol class="breadcrumb" id="navtitle">
+                <li><a href="#">系统首页</a> </li>
+                <li>
+                    <div id="demo" style="overflow: hidden; height: 24px; line-height: 24px; max-width: 916px; white-space: nowrap; display: inline-block; vertical-align: middle; margin-left: 0px;"> <div id="demo1" style="float: left; "> <a href="https://www.vipzftaab.com/index/adList/?s=184" style="color: red">
+                        <font color="#ff0000" face="Arial, Verdana" size="4">
+                            <b>把握未来机遇，实现财富梦想，分担风雨，共享成功，闲钱“活”起来，资金“转”起来，纠正错误的理财观念，培养良好的投资心态，诚信致远，通达天下。（智付通智能理财社区）</b></font></a><span> 2017-10-26</span>    </div><div id="demo2" style="float: left; "> <a href="https://www.vipzftaab.com/index/adList/?s=184" style="color: red"><font color="#ff0000" face="Arial, Verdana" size="4"><b>把握未来机遇，实现财富梦想，分担风雨，共享成功，闲钱“活”起来，资金“转”起来，纠正错误的理财观念，培养良好的投资心态，诚信致远，通达天下。（智付通智能理财社区）</b></font></a><span> 2017-10-26</span></div></div>
+
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div class="container" id="baseinfo">
+        <div class="row" style="margin-top: 10px;padding-top: 10px;padding-bottom: 20px">
+            <div class="col-sm-6" style="margin-bottom:-20px;margin-top: -20px;">
+                <div class="panel panel-warning panel-base">
+                    <div class="panel-heading panel-base-heading">
+                        <i class="glyphicon glyphicon-user"></i> 会员信息
+                    </div>
+                    <div class="panel-body" style="padding: 2px;">
+                        <table width="100%" class="table-bordered table-striped table-condensed flip-content" style="border: 1px solid #555555">
+                            <tbody>
+                            <tr>
+                                <td style="font-size: 10px" class="tit" width="21%"><i class="glyphicon glyphicon-king"></i> 会员级别</td>
+                                <td style="text-align:center;font-size: 10px" width="29%">初级</td>
+                                <td style="font-size: 10px" class="tit" width="21%"><i class="glyphicon glyphicon-yen"></i> 账户总值</td>
+                                <td style="text-align:center;font-size: 10px" width="29%"><span id="AccountNickName">29424</span> <!--<i class="icon-refresh" id="todo" style="color:red;"></i>--></td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-object-align-vertical"></i> 直推人数</td>
+                                <td style="text-align: center;font-size: 10px">5</td>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-align-justify"></i> 团队人数</td>
+                                <td style="text-align: center;font-size: 10px">8</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-lock"></i> 本息钱包</td>
+                                <td style="text-align: center;font-size: 10px">39150</td>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-lock"></i> 直推钱包</td>
+                                <td style="text-align: center;font-size: 10px">100</td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-lock"></i> 冻结钱包</td>
+                                <td style="text-align: center;font-size: 10px">600</td>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-lock"></i> 红包钱包</td>
+                                <td style="text-align: center;font-size: 10px">904</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-yen"></i> 待返钱包</td>
+                                <td style="text-align: center;font-size: 10px">0</td>
+                                <td style="font-size: 10px" class="tit"><i class="glyphicon glyphicon-yen"></i> 激活资金</td>
+                                <td style="text-align: center;font-size: 10px">3963</td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6" style="margin-bottom:-20px;margin-top: -20px">
+                <div class="panel panel-warning panel-base">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading panel-base-heading">
+                        <i class="glyphicon glyphicon-comment"></i> 新闻公告
+                    </div>
+                    <div class="panel-body" style=";padding: 2px;">
+                        <table width="100%" class="table-bordered table-striped table-condensed flip-content" style="border: 1px solid #555555">
+                            <tbody>
+                            <tr>
+                                <td class="tit" colspan="4" style="text-align: left;font-size: 10px">
+                                        <span style="color: #bbb;font-size: 10px;display: block;float: left;width: 80px; font-style: italic; margin-right: 10px">
+                                            2017-12-21
+                                        </span>
+                                    <a href="https://www.vipzftaab.com/index/adList/?s=204" style="color: #8a6d3b">  <i class="icon-file-alt"></i> 【留言咨询必看】</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tit" colspan="4" style="text-align: left;font-size: 10px">
+                                        <span style="color: #bbb;font-size: 10px;display: block;float: left;width: 80px; font-style: italic; margin-right: 10px">
+                                            2018-01-10
+                                        </span>
+                                    <a href="https://www.vipzftaab.com/index/adList/?s=222" style="color: #8a6d3b">  <i class="icon-file-alt"></i> 【敬告】【警告】！！！</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tit" colspan="4" style="text-align: left;font-size: 10px">
+                                        <span style="color: #bbb;font-size: 10px;display: block;float: left;width: 80px; font-style: italic; margin-right: 10px">
+                                            2018-01-06
+                                        </span>
+                                    <a href="https://www.vipzftaab.com/index/adList/?s=221" style="color: #8a6d3b">  <i class="icon-file-alt"></i> 【通知】</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tit" colspan="4" style="text-align: left;font-size: 10px">
+                                        <span style="color: #bbb;font-size: 10px;display: block;float: left;width: 80px; font-style: italic; margin-right: 10px">
+                                            2018-01-04
+                                        </span>
+                                    <a href="https://www.vipzftaab.com/index/adList/?s=220" style="color: #8a6d3b">  <i class="icon-file-alt"></i> 【通知】</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tit" colspan="4" style="text-align: left;font-size: 10px">
+                                        <span style="color: #bbb;font-size: 10px;display: block;float: left;width: 80px; font-style: italic; margin-right: 10px">
+                                            2018-01-01
+                                        </span>
+                                    <a href="https://www.vipzftaab.com/index/adList/?s=217" style="color: #8a6d3b">  <i class="icon-file-alt"></i> 【支付渠道网络故障】</a>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="userinfo">
+        <div class="row" style="margin-top: 20px">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-10">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">账户信息</h3>
+                    </div>
+                    <div class="panel-body" style="min-height: 450px">
+                        <div class="col-sm-12">
+                            <ul class="list-group">
+                                <li class="list-group-item">用户名：Z05942939</li>
+
+                                <li class="list-group-item">推荐人：Z01973857</li>
+                                <li class="list-group-item">真实名：张敏</li>
+                                <li class="list-group-item">手机号：18525366806</li>
+                                <li class="list-group-item">身份证：34122619891008294x</li>
+                                <li class="list-group-item">银行卡：6227000785060362398</li>
+                                <li class="list-group-item">开户行省市：辽宁省-大连市</li>
+                                <li class="list-group-item">开户行详址：普兰店支行</li>
+                                <li class="list-group-item">开户行名称：建设银行</li>
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-1"></div>
+            <div class="col-sm-12" style="text-align: center">
+                <button type="button" class="btn btn-primary" onclick="editUser()">修改资料</button>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#changeInfo" id="editUser" style="display: none">修改资料</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<footer style="padding: 20px">
+    <p class="pull-right" style="color: white"><a href="#">top</a></p>
+    <p style="text-align: center; color: white">Copyright © 2017 Smartpay.com All Rights Reversed.</p>
+</footer>
+<!--<div id="copyright" class="footer">-->
+    <!--<div class="container">-->
+        <!--<div class="row">-->
+            <!--<div class="col-sm-12">-->
+                <!--<p>Copyright © 2017 Smartpay.com All Rights Reversed.</p>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
+
+</body>
+
+</html>

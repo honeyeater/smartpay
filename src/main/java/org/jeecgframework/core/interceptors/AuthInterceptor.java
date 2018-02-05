@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.annotation.JAuth;
 import org.jeecgframework.core.common.exception.GlobalExceptionResolver;
@@ -22,11 +23,8 @@ import org.jeecgframework.core.enums.Permission;
 import org.jeecgframework.core.extend.hqlsearch.SysContextSqlConvert;
 import org.jeecgframework.core.util.*;
 import org.jeecgframework.web.system.manager.ClientManager;
-import org.jeecgframework.web.system.pojo.base.Client;
-import org.jeecgframework.web.system.pojo.base.TSDataRule;
-import org.jeecgframework.web.system.pojo.base.TSFunction;
-import org.jeecgframework.web.system.pojo.base.TSOperation;
-import org.jeecgframework.web.system.pojo.base.TSUser;
+import org.jeecgframework.web.system.manager.FrontClientManager;
+import org.jeecgframework.web.system.pojo.base.*;
 import org.jeecgframework.web.system.service.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -93,7 +91,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
 		//update-begin--Author:taoYan  Date:201706028 for：注解实现排除拦截
 		//判断是否被注解跳过权限认证  先判断类注解然后方法注解 都没有则走原来逻辑
-		HandlerMethod handlerMethod=(HandlerMethod)object;
+        HandlerMethod handlerMethod=(HandlerMethod)object;
 		JAuth jauthType =handlerMethod.getBean().getClass().getAnnotation(JAuth.class);
 		if(jauthType!=null){
 			if(jauthType.auth()==Permission.SKIP_AUTH){
@@ -132,8 +130,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 			//步骤二： 权限控制，优先重组请求URL(考虑online请求前缀一致问题)
 			String clickFunctionId = request.getParameter("clickFunctionId");
 			Client client = ClientManager.getInstance().getClient(ContextHolderUtils.getSession().getId());
-			TSUser currLoginUser = client!=null?client.getUser():null;
-			if (client != null && currLoginUser!=null ) {
+            FrontClient frontClient = FrontClientManager.getInstance().getClient(ContextHolderUtils.getSession().getId() + "front");
+            FrontUserRegisterEntity currentLoginFrontUser = frontClient != null? frontClient.getUser():null;
+			if (frontClient != null && currentLoginFrontUser!=null ) {
 				//onlinecoding的访问地址有规律可循，数据权限链接篡改
 				if(requestPath.equals("cgAutoListController.do?datagrid")) {
 					requestPath += "&configId=" +  request.getParameter("configId");
@@ -141,24 +140,10 @@ public class AuthInterceptor implements HandlerInterceptor {
 				if(requestPath.equals("cgAutoListController.do?list")) {
 					requestPath += "&id=" +  request.getParameter("id");
 				}
-				//update-start--author:scott  date:20170311 for：online新请求方式,权限控制------------
 				if(requestPath.endsWith("?olstylecode=")) {
 					requestPath = requestPath.replace("?olstylecode=", "");
 				}
-				
-				//步骤三：  根据重组请求URL,进行权限授权判断
-				if((!hasMenuAuth(requestPath,clickFunctionId,currLoginUser)) && !currLoginUser.getUserName().equals("admin")){
-					//update-begin--Author:dangzhenghui  Date:20170627 for：TASK #2157 【bug】拦截器，需要判断过来的请求是否ajax,如果ajax则返回无权限json,非跳转页面
-					if(isAjax){
-							processAjax(response);
-					}else {
-						response.sendRedirect(request.getSession().getServletContext().getContextPath()+"/loginController.do?noAuth");
-					}
-					//update-end--Author:dangzhenghui  Date:20170627 for：TASK #2157 【bug】拦截器，需要判断过来的请求是否ajax,如果ajax则返回无权限json,非跳转页面
-					return false;
-				} 
-				//update-end--author:scott  date:20170311 for：online新请求方式,权限控制------------
-				
+
 				//解决rest风格下 权限失效问题
 				String functionId="";
 				String uri= request.getRequestURI().substring(request.getContextPath().length() + 1);
@@ -168,28 +153,22 @@ public class AuthInterceptor implements HandlerInterceptor {
 				}else {
 					realRequestPath=uri;
 				}
-				//update-begin--author:zhoujf  date:20170307 for：TASK #1745 【bug】自定义表单数据权限控制方式 1. 普通控件通过“控件名称”来控制 2. 列表控件，通过“控件名称.表头”来控制
-//				if(!oConvertUtils.isEmpty(clickFunctionId)){
-//					functionId = clickFunctionId;
-//				}else{
-					//update-begin--author:zhoujf  date:20170304 for：自定义表单页面控件权限控制-------------
-					if(realRequestPath.indexOf("autoFormController/af/")>-1 && realRequestPath.indexOf("?")!=-1){
-						realRequestPath = realRequestPath.substring(0, realRequestPath.indexOf("?"));
-					}
-					//update-end--author:scott  date:20170304 for：自定义表单页面控件权限控制---------------
-					List<TSFunction> functions = systemService.findByProperty(TSFunction.class, "functionUrl", realRequestPath);
-					if (functions.size()>0){
-						functionId = functions.get(0).getId();
-					}
-//				}
+                if(realRequestPath.indexOf("autoFormController/af/")>-1 && realRequestPath.indexOf("?")!=-1){
+                    realRequestPath = realRequestPath.substring(0, realRequestPath.indexOf("?"));
+                }
+                //update-end--author:scott  date:20170304 for：自定义表单页面控件权限控制---------------
+                List<TSFunction> functions = systemService.findByProperty(TSFunction.class, "functionUrl", realRequestPath);
+                if (functions.size()>0){
+                    functionId = functions.get(0).getId();
+                }
 				//update-begin--author:zhoujf  date:20170307 for：TASK #1745 【bug】自定义表单数据权限控制方式 1. 普通控件通过“控件名称”来控制 2. 列表控件，通过“控件名称.表头”来控制
 				//Step.1 第一部分处理页面表单和列表的页面控件权限（页面表单字段+页面按钮等控件）
 				if(!oConvertUtils.isEmpty(functionId)){
 					//update-begin-author:taoYan date:20170829 for:admin不作数据权限控制
-					if(!currLoginUser.getUserName().equals("admin")){
+					if(!currentLoginFrontUser.getUserName().equals("admin")){
 						//获取菜单对应的页面控制权限（包括表单字段和操作按钮）
 						//update-begin-author:taoYan date:20170814 for:TASK #2207 【权限bug】多个角色权限（并集问题），因为是反的控制，导致有admin的最大权限反而受小权限控制
-						List<TSOperation> operations = systemService.getOperationsByUserIdAndFunctionId(currLoginUser.getId(), functionId);
+						List<TSOperation> operations = systemService.getOperationsByUserIdAndFunctionId(currentLoginFrontUser.getId(), functionId);
 						request.setAttribute(Globals.NOAUTO_OPERATIONCODES, operations);
 						if(operations==null){
 							request.setAttribute(Globals.OPERATIONCODES, null);
@@ -201,54 +180,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 							request.setAttribute(Globals.OPERATIONCODES, operationCodes);
 						}
 					}
-					//update-end-author:taoYan date:20170829 for:admin不作数据权限控制
-					
-					//Set<String> operationCodes = systemService.getOperationCodesByUserIdAndFunctionId(currLoginUser.getId(), functionId);
-					//request.setAttribute(Globals.OPERATIONCODES, operationCodes);
-				//}
-				//if(!oConvertUtils.isEmpty(functionId)){
-					
-					//update-begin--Author:scott  Date:20170330 for：[online表单按钮\链接权限]jeecg 统一规则采用反的控制，授权的进行按钮或者字段 隐藏\禁用--------------------
-					
-//					List<TSOperation> allOperation=this.systemService.findByProperty(TSOperation.class, "TSFunction.id", functionId);
-//					List<TSOperation> newall = new ArrayList<TSOperation>();
-//					if(allOperation.size()>0){
-//						for(TSOperation s:allOperation){ 
-//						    //s=s.replaceAll(" ", "");
-//							newall.add(s); 
-//						}
-//						//---author:jg_xugj----start-----date:20151210--------for：#781  【oracle兼容】兼容问题fun.operation!='' 在oracle 数据下不正确
-//						String hasOperSql="SELECT operation FROM t_s_role_function fun, t_s_role_user role WHERE  " +
-//							"fun.functionid='"+functionId+"' AND fun.operation is not null  AND fun.roleid=role.roleid AND role.userid='"+currLoginUser.getId()+"' ";
-//						//---author:jg_xugj----end-----date:20151210--------for：#781  【oracle兼容】兼容问题fun.operation!='' 在oracle 数据下不正确
-//						List<String> hasOperList = this.systemService.findListbySql(hasOperSql); 
-//					    for(String operationIds:hasOperList){
-//							    for(String operationId:operationIds.split(",")){
-//							    	operationId=operationId.replaceAll(" ", "");
-//							        TSOperation operation =  new TSOperation();
-//							        operation.setId(operationId);
-//							    	newall.remove(operation);
-//							    } 
-//						} 
-//					}
-					/*List<TSOperation> newall = new ArrayList<TSOperation>();
-					String hasOperSql="SELECT operation FROM t_s_role_function fun, t_s_role_user role WHERE  " +
-										"fun.functionid='"+functionId+"' AND fun.operation is not null  AND fun.roleid=role.roleid AND role.userid='"+currLoginUser.getId()+"' ";
-					List<String> hasOperList = this.systemService.findListbySql(hasOperSql); 
-				    for(String operationIds:hasOperList){
-						    for(String operationId:operationIds.split(",")){
-						    	operationId=operationId.replaceAll(" ", "");
-						        TSOperation operation =  systemService.get(TSOperation.class, operationId);
-						        if(operation!=null && operation.getOperationcode()!=null &&
-						        		(operation.getOperationcode().startsWith("#")|| operation.getOperationcode().startsWith("."))){
-						        	newall.add(operation);
-						        }
-						    } 
-					} 
-					request.setAttribute(Globals.NOAUTO_OPERATIONCODES, newall);*/
-					//update-end--Author:scott  Date:20170330 for：[online表单按钮权限\链接]jeecg 统一规则采用反的控制，授权的进行按钮或者字段 隐藏\禁用--------------------
-					//update-end-author:taoYan date:20170814 for:TASK #2207 【权限bug】多个角色权限（并集问题），因为是反的控制，导致有admin的最大权限反而受小权限控制
-					
+
 					 //Step.2  第二部分处理列表数据级权限 (菜单数据规则集合)
 					 List<TSDataRule> MENU_DATA_AUTHOR_RULES = new ArrayList<TSDataRule>(); 
 					 String MENU_DATA_AUTHOR_RULE_SQL="";
@@ -257,9 +189,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 				 	//数据权限规则的查询
 				 	//查询所有的当前这个用户所对应的角色和菜单的datarule的数据规则id
 					//update-begin-author:taoYan date:20170829 for:admin不作数据权限控制
-					 if(!currLoginUser.getUserName().equals("admin")){
+					 if(!currentLoginFrontUser.getUserName().equals("admin")){
 						 //Globals.BUTTON_AUTHORITY_CHECK
-						 Set<String> dataruleCodes = systemService.getOperationCodesByUserIdAndDataId(currLoginUser.getId(), functionId);
+						 Set<String> dataruleCodes = systemService.getOperationCodesByUserIdAndDataId(currentLoginFrontUser.getId(), functionId);
 						 request.setAttribute("dataRulecodes", dataruleCodes);
 						 for (String dataRuleId : dataruleCodes) {
 							TSDataRule dataRule = systemService.getEntity(TSDataRule.class, dataRuleId);
@@ -270,7 +202,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 					//update-end-author:taoYan date:20170829 for:admin不作数据权限控制
 					 JeecgDataAutorUtils.installDataSearchConditon(request, MENU_DATA_AUTHOR_RULES);//菜单数据规则集合
 					 JeecgDataAutorUtils.installDataSearchConditon(request, MENU_DATA_AUTHOR_RULE_SQL);//菜单数据规则sql
-
 				}
 				return true;
 			} else {
@@ -325,8 +256,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 	/**
 	 * 转发
 	 * 
-	 * @param user
-	 * @param req
 	 * @return
 	 */
 	@RequestMapping(params = "forword")

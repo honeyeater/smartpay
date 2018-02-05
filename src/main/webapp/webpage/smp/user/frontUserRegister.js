@@ -1,4 +1,9 @@
+/**
+ * 校验表单
+ */
+function validform() {
 
+}
 
 //通用弹出式文件上传
 function commonUpload(callback){

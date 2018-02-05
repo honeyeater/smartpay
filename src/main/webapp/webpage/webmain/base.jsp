@@ -16,7 +16,11 @@
     <script src="plug-in/ace/assets/js/jquery-2.0.3.min.js"></script>
     <script src="plug-in/bootstrap3/js/bootstrap.min.js"></script>
     <style>
-
+        @media (min-width: 768px) {
+            body {
+                padding-top: 82px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -26,32 +30,10 @@
 <div id="content">
     <%--操作工具栏--%>
     <%@include file="/webpage/webmain/operatorbar.jsp"%>
-
+    <%--用户基本信息--%>
     <%@include file="/webpage/smp/user/userinfoBase.jsp"%>
+    <%--  --%>
 
-    <div class="container" id="tradeinfo">
-        <div class="row" style="margin-top: 10px">
-            <div id="g12" class="col-sm-6" style="padding-top: 10px">
-                <button type="button" id="g8" style="display: none" data-toggle="modal" data-target="#provide">注入资金</button>
-                <a href="javascript:;" style="text-decoration:none;width: 100%;">
-                    <div style="background: url(&quot;https://www.vipzftaab.com//t/images/button/1.png&quot;) 0% 0% / 100% 100%; min-width: 90%; margin-left: 5%; color: rgb(31, 88, 11); font-size: 30px; text-align: center; font-weight: 900; height: 75px; line-height: 75px;" id="d_1">
-                        <img src="https://www.vipzftaab.com//t/images/button/10.png">&nbsp;注入资金
-                    </div>
-                </a>
-            </div>
-            <div id="g13" class="col-sm-6" style="padding-top: 10px">
-                <button type="button" id="g9" class="btn btn-lg btn-warning " style="display: none" data-toggle="modal" data-target="#accept">提出资金</button>
-                <a href="javascript:;" style="text-decoration:none;width: 100%;">
-                    <div style="background: url(&quot;https://www.vipzftaab.com//t/images/button/4.png&quot;) 0% 0% / 100% 100%; width: 90%; margin-left: 5%; color: rgb(90, 45, 16); font-size: 30px; text-align: center; font-weight: 900; height: 75px; line-height: 75px;" id="d_2">
-                        <img src="https://www.vipzftaab.com/t/images/button/12.png">&nbsp;提出资金
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <%@include file="/webpage/smp/order/injectList.jsp"%>
-    <%@include file="/webpage/smp/order/drawList.jsp"%>
 
 </div>
 
@@ -72,12 +54,11 @@
             $(this).click();
         });
     });
+
     function logout(){
         layer.confirm('您确定要退出登录吗？', {
-            offset: '240px',
-            scrollbar: false,
             btn: ['确定','取消'], //按钮
-            shade: 0.3 //不显示遮罩
+            shade: false //不显示遮罩
         }, function(){
             location.href="userLoginController.do?logout";
         }, function(){

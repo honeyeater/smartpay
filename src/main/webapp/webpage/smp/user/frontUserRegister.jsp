@@ -77,8 +77,8 @@
                     <%--<span class="Validform_checktip"></span>--%>
                     <select class="form-control" id="province" name="province">
                         <option>省份</option>
-                        <option>北京市</option>
                         <option>上海市</option>
+                        <option>北京市</option>
                     </select>
                 </div>
             </div>
@@ -90,14 +90,16 @@
                     <select class="form-control" id="city" name="city">
                         <option>城市</option>
                     </select>
-
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="bankCode">开户银行:</label>
                 <div class="col-lg-4">
-                    <input id="bankCode" name="bankCode" type="text"  class="form-control" ignore="ignore"/>
-                    <span class="Validform_checktip"></span>
+                    <select id="bankCode" name="bankCode" class="form-control">
+                        <option>银行</option>
+                        <option>人民银行</option>
+                        <option>银行</option>
+                    </select>
                 </div>
             </div>
             <div class="form-group">

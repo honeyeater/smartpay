@@ -107,7 +107,6 @@
                                             </button>
                                         </div>
 
-
                                         <div class="clearfix">
                                             <div style="float: right;margin-right: 10px;">
                                                 <label class="inline">

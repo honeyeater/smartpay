@@ -87,7 +87,16 @@ public class FrontUserMemberController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
+
+    /**
+     * 会员信息表列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "list")
+    public ModelAndView goUserMain(HttpServletRequest request) {
+        return new ModelAndView("/webpage/smp/userInfoMain");
+    }
 
 
 	/**
