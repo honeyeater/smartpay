@@ -98,7 +98,38 @@ public class FrontUserRegisterController extends BaseController {
         return new ModelAndView("/smp/user/frontUserRegister");
     }
 
-	/**
+    /**
+     * 修改密码页面调整
+     *
+     * @return
+     */
+    @RequestMapping(params = "updatepwd")
+    public ModelAndView updatepwd(HttpServletRequest request) {
+        return new ModelAndView("smp/user/updatepwdMain");
+    }
+
+    /**
+     * 推广链接页面
+     *
+     * @return
+     */
+    @RequestMapping(params = "tousergeneral")
+    public ModelAndView tousergeneral(HttpServletRequest request) {
+        return new ModelAndView("smp/user/userRegisterMain");
+    }
+
+    /**
+     * 会员信息表列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "gouserinfo")
+    public ModelAndView gouserinfo(HttpServletRequest request) {
+        return new ModelAndView("smp/user/userInfoMain");
+    }
+
+
+    /**
 	 * 注册用户信息表列表 页面跳转
 	 * 
 	 * @return

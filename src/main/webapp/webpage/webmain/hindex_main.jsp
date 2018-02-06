@@ -66,25 +66,7 @@
 <!-- 弹出TAB -->
 <script type="text/javascript" src="plug-in/hplus/hplus-tab.js"></script>
 <!-- 在线聊天 -->
-<script>
-    $(function () {
-        $(".dropdown").mouseover(function (e) {
-            $(this).click();
-        });
-    });
-    function logout(){
-        layer.confirm('您确定要退出登录吗？', {
-            offset: '240px',
-            scrollbar: false,
-            btn: ['确定','取消'], //按钮
-            shade: 0.3 //不显示遮罩
-        }, function(){
-            location.href="userLoginController.do?logout";
-        }, function(){
-            return;
-        });
-    }
-</script>
+
 
 </body>
 

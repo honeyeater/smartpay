@@ -20,16 +20,16 @@
                         <a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">个人管理</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">个人资料</a></li>
-                            <li><a href="#">修改密码</a></li>
+                            <li><a href="frontUserRegisterController.do?gouserinfo">个人资料</a></li>
+                            <li><a href="frontUserRegisterController.do?updatepwd">修改密码</a></li>
                         </ul>
                     </li>
                     <li>
                         <a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">会员中心</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">会员注册</a></li>
-                            <li><a href="#">激活码管理</a></li>
+                            <li><a href="frontUserRegisterController.do?tousergeneral">会员注册</a></li>
+                            <li><a href="frontUserActivatecodeController.do?activatecode">激活码管理</a></li>
                         </ul>
                     </li>
                     <li>
@@ -61,8 +61,8 @@
                     <li><a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">MOCOTT</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">修改资料</a> </li>
-                            <li><a href="#">安全退出</a> </li>
+                            <li><a href="frontUserRegisterController.do?updatepwd">修改资料</a></li>
+                            <li><a href="#" onclick="logout();">安全退出</a> </li>
                         </ul>
                     </li>
                 </ul>
@@ -72,3 +72,22 @@
 </div>
 
 
+<script>
+    $(function () {
+        $(".dropdown").mouseover(function (e) {
+            $(this).click();
+        });
+    });
+    function logout(){
+        layer.confirm('您确定要退出登录吗？', {
+            offset: '240px',
+            scrollbar: false,
+            btn: ['确定','取消'], //按钮
+            shade: 0.3 //不显示遮罩
+        }, function(){
+            location.href="userLoginController.do?logout";
+        }, function(){
+            return;
+        });
+    }
+</script>

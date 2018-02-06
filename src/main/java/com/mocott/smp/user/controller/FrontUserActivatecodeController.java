@@ -87,17 +87,27 @@ public class FrontUserActivatecodeController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
 
 
-	/**
-	 * 用户激活码信息表列表 页面跳转
+    /**
+     * 用户激活码信息表列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "list")
+    public ModelAndView list(HttpServletRequest request) {
+        return new ModelAndView("/user/frontUserActivatecodeList");
+    }
+
+
+    /**
+	 * 激活码管理页面
 	 * 
 	 * @return
 	 */
-	@RequestMapping(params = "list")
-	public ModelAndView list(HttpServletRequest request) {
-		return new ModelAndView("/user/frontUserActivatecodeList");
+	@RequestMapping(params = "activatecode")
+	public ModelAndView activatecode(HttpServletRequest request) {
+		return new ModelAndView("smp/user/activateCodeMain");
 	}
 
 	/**
