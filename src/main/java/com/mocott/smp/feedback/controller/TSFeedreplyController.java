@@ -88,8 +88,6 @@ public class TSFeedreplyController extends BaseController {
 	@Autowired
 	private Validator validator;
 	
-
-
 	/**
 	 * 系统意见留言信息表列表 页面跳转
 	 * 
@@ -99,6 +97,16 @@ public class TSFeedreplyController extends BaseController {
 	public ModelAndView list(HttpServletRequest request) {
 		return new ModelAndView("/feedback/tSFeedreplyList");
 	}
+
+    /**
+     * 系统留言中心列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "toMessagelist")
+    public ModelAndView toMessagelist(HttpServletRequest request) {
+        return new ModelAndView("smp/feedback/messageCenterMain");
+    }
 
 	/**
 	 * easyui AJAX请求数据

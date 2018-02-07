@@ -257,6 +257,17 @@ public class UserLoginController extends BaseController{
 
 	}
 
+    /**
+     * 跳转到主页
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping(params = "toIndex")
+    public ModelAndView toIndex(HttpServletRequest request) {
+        return new ModelAndView("webmain/hindex_main");
+    }
+
 	/**
 	 * 退出系统
 	 * 

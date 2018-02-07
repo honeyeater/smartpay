@@ -16,6 +16,7 @@
     <style>
         body {
             background: white;
+            padding: 0px;
         }
     </style>
 </head>
@@ -32,19 +33,19 @@
     <div class="container">
         <form class="form-horizontal required-validate form-signin"
               onsubmit="return validateCallback(this)">
-            <input id="id" name="id" type="hidden" value="${frontUserRegisterPage.id }">
+            <input id="id" name="id" type="hidden" value="${userPage.id }">
             <div class="form-group">
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="introducer">推荐人:</label>
                 <div class="col-lg-4">
-                    <input id="introducer" name="introducer" type="text" class="form-control" ignore="ignore"/>
+                    <input id="introducer" name="introducer" type="text" class="form-control" ignore="ignore" value="${userPage.userName}" readonly/>
                     <span class="Validform_checktip"></span>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="userName">用户名:</label>
                 <div class="col-lg-4">
-                    <input id="userName" name="userName" type="text" class="form-control" ignore="ignore"/>
-                    <span class="Validform_checktip"></span>
+                    <input id="userName" name="userName" type="text" class="form-control" ignore="ignore" style="width: 60%;display:inline;" readonly/>
+                    <input type="button" value="更换" name="changeUserName" onclick="" class="btn btn-success form-control pull-right" style="width: 36%;display:inline;">
                 </div>
             </div>
             <div class="form-group">

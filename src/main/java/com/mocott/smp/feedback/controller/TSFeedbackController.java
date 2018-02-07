@@ -87,8 +87,17 @@ public class TSFeedbackController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
 
+
+    /**
+     * 系统意见留言信息录入 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "toFeedback")
+    public ModelAndView toFeedback(HttpServletRequest request) {
+        return new ModelAndView("smp/feedback/feedbackMain");
+    }
 
 	/**
 	 * 系统意见留言信息表列表 页面跳转

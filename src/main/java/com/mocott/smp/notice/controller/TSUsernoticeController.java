@@ -87,8 +87,17 @@ public class TSUsernoticeController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
 
+
+    /**
+     * 系统公告信息列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "toNoticeList")
+    public ModelAndView toNoticeList(HttpServletRequest request) {
+        return new ModelAndView("smp/notice/noticeListMain");
+    }
 
 	/**
 	 * 系统公告信息表列表 页面跳转

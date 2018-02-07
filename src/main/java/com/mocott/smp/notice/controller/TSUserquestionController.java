@@ -95,9 +95,9 @@ public class TSUserquestionController extends BaseController {
 	 * 
 	 * @return
 	 */
-	@RequestMapping(params = "list")
-	public ModelAndView list(HttpServletRequest request) {
-		return new ModelAndView("/notice/tSUserquestionList");
+	@RequestMapping(params = "toIssueList")
+	public ModelAndView toIssueList(HttpServletRequest request) {
+		return new ModelAndView("smp/notice/issueListMain");
 	}
 
 	/**

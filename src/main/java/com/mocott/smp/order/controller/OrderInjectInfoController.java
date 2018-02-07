@@ -87,18 +87,36 @@ public class OrderInjectInfoController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
 
+    /**
+     * 财务明细列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "tofinancelist")
+    public ModelAndView tofinancelist(HttpServletRequest request) {
+        return new ModelAndView("smp/order/tradeDetailMain");
+    }
 
-	/**
+    /**
 	 * 注入资金订单表列表 页面跳转
 	 * 
 	 * @return
 	 */
-	@RequestMapping(params = "list")
-	public ModelAndView list(HttpServletRequest request) {
-		return new ModelAndView("/order/orderInjectInfoList");
+	@RequestMapping(params = "toInjectList")
+	public ModelAndView toInjectList(HttpServletRequest request) {
+		return new ModelAndView("smp/order/injectListMain");
 	}
+
+    /**
+     * 注入资金订单表列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "toTeamList")
+    public ModelAndView toTeamList(HttpServletRequest request) {
+        return new ModelAndView("smp/order/teamListMain");
+    }
 
 	/**
 	 * easyui AJAX请求数据

@@ -88,7 +88,17 @@ public class FrontUserMemberController extends BaseController {
 	@Autowired
 	private Validator validator;
 
-	/**
+    /**
+     * 会员信息表列表 页面跳转
+     *
+     * @return
+     */
+    @RequestMapping(params = "toMemberShip")
+    public ModelAndView toMemberShip(HttpServletRequest request) {
+        return new ModelAndView("smp/user/memberShipMain");
+    }
+
+    /**
 	 * 会员信息表列表 页面跳转
 	 * 
 	 * @return

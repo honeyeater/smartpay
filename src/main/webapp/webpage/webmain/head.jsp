@@ -11,11 +11,11 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#" style="font-size: 26px;">理财社区</a>
+                <a class="navbar-brand" href="userLoginController.do?toIndex" style="font-size: 26px;">理财社区</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="active"><a href="#">系统首页</a></li>
+                    <li class="active"><a href="userLoginController.do?toIndex">系统首页</a></li>
                     <li>
                         <a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">个人管理</a>
@@ -36,32 +36,32 @@
                         <a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">财务管理</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">财务明细</a> </li>
-                            <li><a href="#">注资列表</a> </li>
-                            <li><a href="#">提取列表</a> </li>
+                            <li><a href="orderInjectInfoController.do?tofinancelist">财务明细</a> </li>
+                            <li><a href="orderInjectInfoController.do?toInjectList">注资列表</a> </li>
+                            <li><a href="orderDrawInfoController.do?toDrawList">提取列表</a> </li>
                         </ul>
                     </li>
                     <li><a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">市场管理</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">推荐关系</a> </li>
-                            <li><a href="#">团队业绩</a> </li>
+                            <li><a href="frontUserMemberController.do?toMemberShip">推荐关系</a> </li>
+                            <li><a href="orderInjectInfoController.do?toTeamList">团队业绩</a> </li>
                         </ul>
                     </li>
                     <li><a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">公告留言</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">最新公告</a> </li>
-                            <li><a href="#">留言中心</a> </li>
-                            <li><a href="#">问题反馈</a> </li>
+                            <li><a href="tSUsernoticeController.do?toNoticeList">最新公告</a> </li>
+                            <li><a href="tSFeedreplyController.do?toMessagelist">留言中心</a> </li>
+                            <li><a href="tSFeedbackController.do?toFeedback">问题反馈</a> </li>
                         </ul>
                     </li>
-                    <li><a href="#">常见问题</a></li>
+                    <li><a href="tSUserquestionController.do?toIssueList">常见问题</a></li>
                     <li><a href="#" onclick="logout();">安全退出</a></li>
                     <li><a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">MOCOTT</a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="frontUserRegisterController.do?updatepwd">修改资料</a></li>
+                            <li><a href="frontUserRegisterController.do?gouserinfo">修改资料</a></li>
                             <li><a href="#" onclick="logout();">安全退出</a> </li>
                         </ul>
                     </li>

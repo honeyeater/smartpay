@@ -112,8 +112,8 @@ public class FrontClientManager {
 	 */
 	public FrontClient getClient(){
 		String sessionId = ContextHolderUtils.getSession().getId();
-		if(!StringUtils.isEmpty(sessionId)&&ContextHolderUtils.getSession().getAttribute(sessionId)!=null){
-			return (FrontClient)ContextHolderUtils.getSession().getAttribute(sessionId);
+		if(!StringUtils.isEmpty(sessionId)&&ContextHolderUtils.getSession().getAttribute(sessionId + "front")!=null){
+			return (FrontClient)ContextHolderUtils.getSession().getAttribute(sessionId + "front");
 		}
 		else{
 			return null;

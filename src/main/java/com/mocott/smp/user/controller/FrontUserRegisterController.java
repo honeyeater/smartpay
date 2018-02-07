@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.jeecgframework.web.system.manager.FrontClientManager;
+import org.jeecgframework.web.system.pojo.base.FrontClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -95,6 +97,16 @@ public class FrontUserRegisterController extends BaseController {
      */
     @RequestMapping(params = "register")
     public ModelAndView register(HttpServletRequest request) {
+        String parentId = (String) request.getParameter("t");
+        FrontUserRegisterEntity userRegisterEntity = null;
+        if(StringUtil.isNotEmpty(parentId)) {
+            userRegisterEntity = frontUserRegisterService.getEntity(FrontUserRegisterEntity.class, parentId);
+        }
+        if(userRegisterEntity == null) {
+            return new ModelAndView("/smp/user/userNotExist");
+        }
+        request.setAttribute("userPage", userRegisterEntity);
+
         return new ModelAndView("/smp/user/frontUserRegister");
     }
 
@@ -115,6 +127,17 @@ public class FrontUserRegisterController extends BaseController {
      */
     @RequestMapping(params = "tousergeneral")
     public ModelAndView tousergeneral(HttpServletRequest request) {
+        // 获取推广的链接地址
+        FrontClient client = FrontClientManager.getInstance().getClient();
+        FrontUserRegisterEntity user = null;
+        if(client != null) {
+            user = client.getUser();
+        }
+        if(user != null) {
+            String prefix = ResourceUtil.getConfigByName("commenturl.prefix");
+            request.setAttribute("commentUrl", prefix + user.getId());
+        }
+
         return new ModelAndView("smp/user/userRegisterMain");
     }
 
@@ -145,23 +168,22 @@ public class FrontUserRegisterController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
 
 	@RequestMapping(params = "datagrid")
 	public void datagrid(FrontUserRegisterEntity frontUserRegister,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
-		CriteriaQuery cq = new CriteriaQuery(FrontUserRegisterEntity.class, dataGrid);
-		//查询条件组装器
-		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, frontUserRegister, request.getParameterMap());
-		try{
-		//自定义追加查询条件
-		}catch (Exception e) {
-			throw new BusinessException(e.getMessage());
-		}
-		cq.add();
-		this.frontUserRegisterService.getDataGridReturn(cq, true);
-		TagUtil.datagrid(response, dataGrid);
-	}
+        CriteriaQuery cq = new CriteriaQuery(FrontUserRegisterEntity.class, dataGrid);
+        //查询条件组装器
+        org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, frontUserRegister, request.getParameterMap());
+        try{
+            //自定义追加查询条件
+        }catch (Exception e) {
+            throw new BusinessException(e.getMessage());
+        }
+        cq.add();
+        this.frontUserRegisterService.getDataGridReturn(cq, true);
+        TagUtil.datagrid(response, dataGrid);
+    }
 	
 	/**
 	 * 删除注册用户信息表
@@ -219,7 +241,6 @@ public class FrontUserRegisterController extends BaseController {
 	/**
 	 * 添加注册用户信息表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")

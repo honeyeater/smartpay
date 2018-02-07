@@ -95,9 +95,9 @@ public class OrderDrawInfoController extends BaseController {
 	 * 
 	 * @return
 	 */
-	@RequestMapping(params = "list")
-	public ModelAndView list(HttpServletRequest request) {
-		return new ModelAndView("/order/orderDrawInfoList");
+	@RequestMapping(params = "toDrawList")
+	public ModelAndView toDrawList(HttpServletRequest request) {
+		return new ModelAndView("smp/order/drawListMain");
 	}
 
 	/**
