@@ -184,8 +184,52 @@ public class FrontUserRegisterController extends BaseController {
         this.frontUserRegisterService.getDataGridReturn(cq, true);
         TagUtil.datagrid(response, dataGrid);
     }
-	
-	/**
+
+    /**
+     * 生成用户名
+     *
+     * @return
+     */
+    @RequestMapping(params = "generateUN")
+    @ResponseBody
+    public AjaxJson generateUN(HttpServletRequest request) {
+        String message = null;
+        AjaxJson j = new AjaxJson();
+        try{
+            String userNamePrefix = ResourceUtil.getConfigByName("username.prefix");
+            int endTail = (int)(Math.random()*1000000000);
+            String newUserName = userNamePrefix+endTail;
+            while(hasExistUserName(newUserName)) {
+                newUserName = userNamePrefix + (int)Math.random()*10;
+            }
+            j.setObj(newUserName);
+            message = "生成新用户名成功";
+            systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
+        }catch(Exception e){
+            e.printStackTrace();
+            message = "生成新用户名失败，请重试";
+            throw new BusinessException(e.getMessage());
+        }
+        j.setMsg(message);
+        return j;
+    }
+
+
+    /**
+     * 用户名是否已存在
+     * @param userName
+     * @return
+     */
+    private boolean hasExistUserName(String userName) {
+        FrontUserRegisterEntity userRegisterEntity = frontUserRegisterService.queryEntityByUserName(userName);
+        if(userRegisterEntity != null )  {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
 	 * 删除注册用户信息表
 	 * 
 	 * @return
@@ -252,6 +296,7 @@ public class FrontUserRegisterController extends BaseController {
 		try{
 			frontUserRegisterService.save(frontUserRegister);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+            j.setObj(frontUserRegister.getUserName());
 		}catch(Exception e){
 			e.printStackTrace();
 			message = "注册用户信息表添加失败";
@@ -264,7 +309,6 @@ public class FrontUserRegisterController extends BaseController {
 	/**
 	 * 更新注册用户信息表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")

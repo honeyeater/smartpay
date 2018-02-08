@@ -27,7 +27,13 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
  		//执行删除操作增强业务
 		this.doDelBus(entity);
  	}
- 	
+
+    /**
+     * 保存注册用户信息
+     * @param entity
+     * @return
+     * @throws Exception
+     */
  	public Serializable save(FrontUserRegisterEntity entity) throws Exception{
  		Serializable t = super.save(entity);
  		//执行新增操作增强业务
@@ -65,6 +71,23 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
             if(users != null && users.size() > 0){
                 return users.get(0);
             }
+        }
+        return null;
+    }
+
+    /**
+     * 判断是否有
+     * @param userName
+     * @return
+     */
+    @Override
+    public FrontUserRegisterEntity queryEntityByUserName(String userName) {
+        String query = "from FrontUserRegisterEntity u where u.userName = :username";
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("username", userName);
+        List<FrontUserRegisterEntity> users = queryObject.list();
+        if (users != null && users.size() > 0) {
+            return users.get(0);
         }
         return null;
     }

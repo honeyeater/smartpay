@@ -13,4 +13,7 @@ public interface FrontUserRegisterServiceI extends CommonService{
  	public void saveOrUpdate(FrontUserRegisterEntity entity) throws Exception;
 
     public FrontUserRegisterEntity checkUserExits(FrontUserRegisterEntity user);
+
+    public FrontUserRegisterEntity queryEntityByUserName(String userName);
+
 }

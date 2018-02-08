@@ -13,6 +13,9 @@
     <script src="plug-in/bootstrap3/js/bootstrap.min.js"></script>
     <script src="plug-in/bootstrap3/validate/js/bootstrapValidator.js"></script>
     <script src="plug-in/bootstrap3/validate/js/language/zh_CN.js"></script>
+
+    <script src="plug-in-ui/hplus/js/plugins/layer/layer.min.js"></script>
+
     <style>
         body {
             background: white;
@@ -32,7 +35,7 @@
     </div>
     <div class="container">
         <form class="form-horizontal required-validate form-signin"
-              onsubmit="return validateCallback(this)">
+              onsubmit="return validateCallback(this)" id="registform">
             <input id="id" name="id" type="hidden" value="${userPage.id }">
             <div class="form-group">
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="introducer">推荐人:</label>
@@ -45,7 +48,7 @@
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="userName">用户名:</label>
                 <div class="col-lg-4">
                     <input id="userName" name="userName" type="text" class="form-control" ignore="ignore" style="width: 60%;display:inline;" readonly/>
-                    <input type="button" value="更换" name="changeUserName" onclick="" class="btn btn-success form-control pull-right" style="width: 36%;display:inline;">
+                    <input type="button" value="更换" name="changeUserName" onclick="generalUserName();" class="btn btn-success form-control pull-right" style="width: 36%;display:inline;">
                 </div>
             </div>
             <div class="form-group">
@@ -121,14 +124,14 @@
             <div class="form-group">
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="password">登录密码:</label>
                 <div class="col-lg-4">
-                    <input id="password" name="password" type="text"  class="form-control" ignore="ignore"/>
+                    <input id="password" name="password" type="password"  class="form-control" ignore="ignore"/>
                     <span class="Validform_checktip"></span>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-lg-2 col-lg-offset-2 control-label" for="safePassword">安全密码:</label>
                 <div class="col-lg-4">
-                    <input id="safePassword" name="safePassword" type="text"  class="form-control"
+                    <input id="safePassword" name="safePassword" type="password"  class="form-control"
                            ignore="ignore"/>
                     <span class="Validform_checktip"></span>
                 </div>
@@ -171,22 +174,74 @@
                 e.preventDefault();
             });
         });
+        generalUserName();
     });
 
     function validateCallback(form, callback, confirmMsg) {
         var $form = $(form);
-
         var data = $form.data('bootstrapValidator');
-        alert(data);
         if (data) {
             // 修复记忆的组件不验证
             data.validate();
             if (!data.isValid()) {
                 return false;
             }
-        }
+            // 提交信息
+            var url="frontUserRegisterController.do?doAdd";
+            var fromData = $('#registform').serialize();
+            $.ajax({
+                cache: false,
+                async : false,
+                type : 'POST',
+                url : url,// 请求的action路径
+                data : fromData,
+                error : function() {// 请求失败处理函数
+                    alert("error");
+                },
+                success : function(data) {
+                    var d = $.parseJSON(data);
+                    if (d.success) {
+//                        $.messager.alert('提示',d.msg, 'info');
+                        layer.alert(
+                            d.msg,
+                            {
+                                closeBtn: 0
+                            },
+                            function(){
+                                location.href="userLoginController.do?logout";
+                            }
+                    );
 
-        return false;
+                        //window.location.href = actionurl;
+                    } else {
+                        alert(2);
+                    }
+                }
+            });
+        }
+//        return false;
     }
+
+    /**
+     * 获取注册用户名
+     */
+    function generalUserName() {
+        var url="frontUserRegisterController.do?generateUN";
+        $.ajax({cache : false,type : 'POST',url : url,
+            error : function() {
+                tip("系统错误!");
+            },
+            success : function(data) {
+                var d = $.parseJSON(data);
+                if(d.obj != null){
+                    $("#userName").val(d.obj);
+                }else{
+                    $.messager.alert('提示',d.msg, 'info');
+                }
+            }
+        });
+    }
+
+    
 </script>
 	

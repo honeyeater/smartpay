@@ -125,6 +125,8 @@
 						<value>userLoginController.do?checkuser</value>
 						<value>userLoginController.do?checkuser=</value>
 						<value>frontUserRegisterController.do?register</value>
+						<value>frontUserRegisterController.do?generateUN</value>
+						<value>frontUserRegisterController.do?doAdd</value>
 						<value>repairController.do?repair</value>
 						<value>systemController.do?saveFiles</value>
 						<value>repairController.do?deleteAndRepair</value>
