@@ -7,7 +7,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit">
-    <title>理财社区</title>
+    <title>金润理财</title>
     <meta name="keywords" content="理财">
     <meta name="description" content="一家专门从事理财的交易网站">
     <!--bootstrape-->

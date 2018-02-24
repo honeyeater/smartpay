@@ -65,6 +65,9 @@ public class TSUsernoticeEntity implements java.io.Serializable {
 	/**扩展字符字段*/
     @Excel(name="扩展字符字段",width=15)
 	private java.lang.String vfield1;
+	/**是否有效*/
+    @Excel(name="是否有效",width=2)
+	private java.lang.String validstatus;
 	/**扩展字符字段*/
     @Excel(name="扩展字符字段",width=15)
 	private java.lang.String vfield2;
@@ -300,6 +303,24 @@ public class TSUsernoticeEntity implements java.io.Serializable {
 	public void setVfield1(java.lang.String vfield1){
 		this.vfield1 = vfield1;
 	}
+
+	/**
+	 *方法: 取得java.lang.String
+	 *@return: java.lang.String  扩展字符字段
+	 */
+	@Column(name ="VALIDSTATUS",nullable=true,length=2)
+	public java.lang.String getValidstatus(){
+		return this.validstatus;
+	}
+
+	/**
+	 *方法: 设置java.lang.String
+	 *@param: java.lang.String  扩展字符字段
+	 */
+	public void setValidstatus(java.lang.String validstatus){
+		this.validstatus = validstatus;
+	}
+
 	/**
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  扩展字符字段

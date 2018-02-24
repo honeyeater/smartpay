@@ -50,25 +50,25 @@ public final class error_jsp extends org.apache.jasper.runtime.HttpJspBase
       out = pageContext.getOut();
       _jspx_out = out;
 
-      out.write("\r\n");
-      out.write("<html>\r\n");
-      out.write("<head>\r\n");
-      out.write("<title>Exception!</title>\r\n");
-      out.write("</head>\r\n");
-      out.write("<body>\r\n");
+      out.write("\n");
+      out.write("<html>\n");
+      out.write("<head>\n");
+      out.write("<title>Exception!</title>\n");
+      out.write("</head>\n");
+      out.write("<body>\n");
  Exception e = (Exception)request.getAttribute("ex"); 
-      out.write("\r\n");
+      out.write("\n");
       out.write("<H2>错误异常: ");
       out.print( e.getClass().getSimpleName());
-      out.write("</H2>\r\n");
-      out.write("<hr />\r\n");
-      out.write("<P>错误描述：</P>\r\n");
+      out.write("</H2>\n");
+      out.write("<hr />\n");
+      out.write("<P>错误描述：</P>\n");
       out.print( e.getMessage());
-      out.write("\r\n");
-      out.write("<P>错误信息：</P>\r\n");
+      out.write("\n");
+      out.write("<P>错误信息：</P>\n");
  e.printStackTrace(new java.io.PrintWriter(out)); 
-      out.write("\r\n");
-      out.write("</body>\r\n");
+      out.write("\n");
+      out.write("</body>\n");
       out.write("</html>");
     } catch (Throwable t) {
       if (!(t instanceof SkipPageException)){

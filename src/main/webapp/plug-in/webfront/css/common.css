@@ -45,9 +45,14 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 
 @media (min-width: 992px) {
-    .container {
-        /*width: 80%;*/
-    }
+    /*.container {*/
+        /*width: 90%;*/
+    /*}*/
+}
+@media (min-width: 1200px) {
+    /*.container {*/
+        /*width: 90%;*/
+    /*}*/
 }
 
 /**导航条样式**/
@@ -134,3 +139,56 @@ a:focus {outline:none !important;}
     padding: 0px;
 }
 
+#d_1 {
+    background: url("../images/in-bg.png");
+    min-width: 90%;
+    margin-left: 5%;
+    color: rgb(31, 88, 11);
+    font-size: 30px;
+    text-align: center;
+    font-weight: 900;
+    height: 75px;
+    line-height: 75px;
+}
+
+#d_2 {
+    background: url("../images/out-bg.png");
+    width: 90%;
+    margin-left: 5%;
+    color: rgb(90, 45, 16);
+    font-size: 30px;
+    text-align: center;
+    font-weight: 900;
+    height: 75px;
+    line-height: 75px;
+}
+
+.issuetitle {
+    font-size: 15.0pt;
+    font-family: 宋体;
+    mso-ascii-font-family: Calibri;
+    mso-ascii-theme-font: minor-latin;
+    mso-fareast-font-family: 宋体;
+    mso-fareast-theme-font: minor-fareast;
+    mso-hansi-font-family: Calibri;
+    mso-hansi-theme-font: minor-latin;
+    color: red;
+}
+
+.issuecontent {
+    font-family: Arial, Verdana;
+    font-size: 10pt;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    line-height: 16.8pt;
+    margin: 0cm 0cm 0.0001pt;
+    background-image: initial;
+    background-attachment: initial;
+    background-color: white;
+    background-size: initial;
+    background-origin: initial;
+    background-clip: initial;
+    background-position: initial;
+    background-repeat: initial;
+}

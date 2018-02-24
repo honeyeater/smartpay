@@ -1,8 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!--页面头部导航-->
 <div id="header">
-    <nav class="navbar navbar-default navbar-fixed-top">
-        <div class="container">
+    <nav class="navbar navbar-default navbar-fixed-top" >
+        <div class="container" style="width: 90%;">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                         data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
@@ -11,7 +11,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="userLoginController.do?toIndex" style="font-size: 26px;">理财社区</a>
+                <a class="navbar-brand" href="userLoginController.do?toIndex" style="font-size: 24px;">金润理财</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
@@ -59,7 +59,11 @@
                     <li><a href="tSUserquestionController.do?toIssueList">常见问题</a></li>
                     <li><a href="#" onclick="logout();">安全退出</a></li>
                     <li><a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
-                           role="button" aria-expanded="true" aria-haspopup="true">MOCOTT</a>
+                           role="button" aria-expanded="true" aria-haspopup="true">
+                            ${currentUser.userName}
+                        <input type="hidden" id="currentUserId" name="currentUserId" value="${currentUser.id}">
+                        <input type="hidden" id="currentUserName" name="currentUserName" value="${currentUser.userName}">
+                    </a>
                         <ul class="dropdown-menu dropdown-menu-left">
                             <li><a href="frontUserRegisterController.do?gouserinfo">修改资料</a></li>
                             <li><a href="#" onclick="logout();">安全退出</a> </li>

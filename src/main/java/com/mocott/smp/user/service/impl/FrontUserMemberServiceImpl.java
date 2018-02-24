@@ -1,17 +1,21 @@
 package com.mocott.smp.user.service.impl;
-import com.mocott.smp.user.service.FrontUserMemberServiceI;
-import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
+
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.io.Serializable;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import org.hibernate.Query;
+import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import org.jeecgframework.core.util.ApplicationContextUtil;
 import org.jeecgframework.core.util.MyClassLoader;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service("frontUserMemberService")
 @Transactional
@@ -36,8 +40,25 @@ public class FrontUserMemberServiceImpl extends CommonServiceImpl implements Fro
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 获取用户信息
+	 * @param userName
+	 * @return
+     */
+	@Override
+	public FrontUserMemberEntity queryEntityByUserName(String userName) {
+		String query = " from FrontUserMemberEntity o where o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<FrontUserMemberEntity> userMemberList = queryObject.list();
+		if(userMemberList != null && userMemberList.size()>0) {
+			return userMemberList.get(0);
+		}
+		return null;
+	}
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

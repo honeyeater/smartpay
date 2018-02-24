@@ -13,8 +13,45 @@
                     2、同一问题不要重复提交多条留言，以免被系统刪除而全部得不到处理。<br>
                     3、如果问题您已自行处理好，那可以及时关闭留言！<br>
                 </div>
-                <div class="col-lg-12" style="text-align: center">
-                    暂无记录
+                <div class="col-lg-12" style="text-align: left">
+                    <c:if test="${not empty feedbackInfos}">
+                        <c:forEach items="${feedbackInfos}" var="feedbackInfo">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading bg-info">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" data-parent="#accordion"
+                                               href="#${feedbackInfo.feedbackid}">
+                                                <strong>${feedbackInfo.title}</strong>
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="${feedbackInfo.feedbackid}" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <span>
+                                                <strong>反馈时间:${feedbackInfo.feedtime}</strong><br>
+                                                <strong>反馈内容:${feedbackInfo.content}</strong><br>
+                                            </span>
+                                            =======================================================
+                                            <br>
+                                            <c:if test="${not empty feedbackInfo.feedReplyInfo}">
+                                                <span>
+                                                    <strong>回复时间:${feedbackInfo.feedReplyInfo.replyTime}</strong><br>
+                                                    <strong>回复内容:${feedbackInfo.feedReplyInfo.replyContent}</strong><br>
+                                                </span
+                                            </c:if>
+                                            <c:if test="${empty feedbackInfo.feedReplyInfo}">
+                                                <span>暂无回复,敬请期待!
+                                                </span>
+                                            </c:if>
+
+                                        </div>
+                                    </div>
+                                </div>
+                        </c:forEach>
+                    </c:if>
+                    <c:if test="${empty feedbackInfos}">
+                        暂无记录
+                    </c:if>
                 </div>
             </div>
         </div>

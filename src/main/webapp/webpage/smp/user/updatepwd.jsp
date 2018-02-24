@@ -2,40 +2,191 @@
 
 <div class="container" id="updpwd">
     <div class="row" style="margin-top: 20px">
-        <form action="https://www.vipzftaab.com/index/doChangePwd/" method="post">
+        <form class="required-validate" method="post" onsubmit="return validateCallback(this);" id="updpwdForm">
             <div class="col-sm-1"></div>
             <div class="col-sm-10">
                 <div class="col-lg-6">
                     <div class="alert alert-info" role="alert" style="width: 100%;text-align: center">
                         <strong>登录密码</strong>
                         <hr>
-                        <input type="password" class="form-control" placeholder="旧登录密码码" id="oPassWard" name="oPassWard">
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="旧登录密码" id="oPassWard" name="oPassWard">
+                        </div>
                         <hr>
-                        <input type="password" class="form-control" placeholder="新登录密码" id="nPassWard" name="nPassWard">
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="新登录密码" id="nPassWard" name="nPassWard">
+                        </div>
                         <hr>
-                        <input type="password" class="form-control" placeholder="重复登录密码" id="rPassWard" name="rPassWard">
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="重复登录密码" id="rPassWard" name="rPassWard">
+                        </div>
                         <hr>
                     </div>
                 </div>
                 <div class="col-lg-6">
-
                     <div class="alert alert-info" role="alert" style="width: 100%;text-align: center">
                         <strong>安全密码</strong>
                         <hr>
-                        <input type="password" class="form-control" placeholder="旧安全密码" id="oPassWard1" name="oPassWard1">
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="旧安全密码" id="oPassWard1" name="oPassWard1">
+                        </div>
                         <hr>
-                        <input type="password" class="form-control" placeholder="新安全密码" id="nPassWard1" name="nPassWard1">
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="新安全密码" id="nPassWard1" name="nPassWard1">
+                        </div>
                         <hr>
-                        <input type="password" class="form-control" placeholder="重复安全密码" id="rPassWard1" name="rPassWard1">
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="重复安全密码" id="rPassWard1" name="rPassWard1">
+                        </div>
                         <hr>
                     </div>
-
                 </div>
-
             </div>
             <div class="col-sm-1"></div>
-            <div class="col-md-12" style="text-align: center"> <button type="submit" class="btn btn-primary">确定</button></div>
+            <div class="col-md-12" style="text-align: center">
+                <button type="submit" class="btn btn-primary col-md-4 col-md-offset-4">确定</button></div>
         </form>
     </div>
 </div>
+<link href="plug-in/bootstrap3/validate/css/bootstrapValidator.min.css" rel="stylesheet">
+<script src="plug-in/bootstrap3/validate/js/bootstrapValidator.js"></script>
+<script src="plug-in/bootstrap3/validate/js/language/zh_CN.js"></script>
 
+<script type="text/javascript">
+
+    $(function() {
+        // validate form
+        $("form.required-validate").each(function () {
+            var $form = $(this);
+            $form.bootstrapValidator({
+                live: 'disabled',//验证时机，enabled是内容有变化就验证（默认），disabled和submitted是提交再验证
+                excluded: [':disabled', ':hidden', ':not(:visible)'],//排除无需验证的控件，比如被禁用的或者被隐藏的
+                message: '通用的验证失败消息',//好像从来没出现过
+                fields: {
+                    oPassWard: {
+                        validators: {
+                            notEmpty: {
+                                message: '旧登录密码不能为空'
+                            }
+                        }
+                    },
+                    oPassWard1: {
+                        validators: {
+                            notEmpty: {
+                                message: '旧安全密码不能为空'
+                            }
+                        }
+                    },
+                    nPassWard: {
+                        validators: {
+                            notEmpty: {
+                                message: '新登录密码不能为空'
+                            },
+                            stringLength: {//检测长度
+                                min: 6,
+                                max: 30,
+                                message: '长度必须在6-30之间'
+                            },
+                            regexp: {//正则验证
+                                regexp: /^[a-zA-Z0-9_\.]+$/,
+                                message: '只能输入字母、数字、下划线和点'
+                            }
+                        }
+                    },
+                    nPassWard1: {
+                        validators: {
+                            notEmpty: {
+                                message: '新安全密码不能为空'
+                            },
+                            stringLength: {//检测长度
+                                min: 6,
+                                max: 30,
+                                message: '长度必须在6-30之间'
+                            },
+                            regexp: {//正则验证
+                                regexp: /^[a-zA-Z0-9_\.]+$/,
+                                message: '只能输入字母、数字、下划线和点'
+                            }
+                        }
+                    },
+                    rPassWard: {
+                        validators: {
+                            notEmpty: {
+                                message: '新重复登录密码不能为空'
+                            },
+                            identical: {
+                                field: 'nPassWard',
+                                message: '新登录密码两次输入的不一致'
+                            }
+                        }
+                    },
+                    rPassWard1: {
+                        validators: {
+                            notEmpty: {
+                                message: '新重复安全密码不能为空'
+                            },
+                            identical: {
+                                field: 'nPassWard1',
+                                message: '新安全密码两次输入的不一致'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 修复bootstrap validator重复向服务端提交bug
+            $form.on('success.form.bv', function (e) {
+                e.preventDefault();
+            });
+        });
+    });
+
+    function validateCallback(form, callback, confirmMsg) {
+        var $form = $(form);
+        var data = $form.data('bootstrapValidator');
+        if (data) {
+            // 修复记忆的组件不验证
+            data.validate();
+            if (!data.isValid()) {
+                return false;
+            }
+            // 提交信息
+            var url="frontUserRegisterController.do?doUpdatePwd";
+            var fromData = $('#updpwdForm').serialize();
+            $.ajax({
+                cache: false,
+                async : false,
+                type : 'POST',
+                url : url,// 请求的action路径
+                data : fromData,
+                error : function() {// 请求失败处理函数
+                    alert("error");
+                },
+                success : function(data) {
+                    var d = $.parseJSON(data);
+                    if (d.success) {
+                        layer.alert(
+                                d.msg,
+                                {
+                                    offset: '240px',
+                                    closeBtn: 0
+                                },
+                                function(){
+                                    location.href="userLoginController.do?logout";
+                                }
+                        );
+                    } else {
+                        layer.alert(d.msg, {
+                            offset: '240px',
+                            closeBtn: 0
+                        });
+                    }
+                }
+            });
+        }
+        return false;
+    }
+
+
+
+</script>

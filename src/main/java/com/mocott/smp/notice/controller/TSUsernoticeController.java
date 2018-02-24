@@ -96,7 +96,15 @@ public class TSUsernoticeController extends BaseController {
      */
     @RequestMapping(params = "toNoticeList")
     public ModelAndView toNoticeList(HttpServletRequest request) {
-        return new ModelAndView("smp/notice/noticeListMain");
+
+		try{
+			List<TSUsernoticeEntity> notices = tSUsernoticeService.queryAllNotice();
+			request.setAttribute("notices", notices);
+		}catch (Exception e) {
+			throw new BusinessException(e.getMessage());
+		}
+
+		return new ModelAndView("smp/notice/noticeListMain");
     }
 
 	/**

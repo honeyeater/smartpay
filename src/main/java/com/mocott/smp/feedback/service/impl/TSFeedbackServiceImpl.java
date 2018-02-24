@@ -1,10 +1,12 @@
 package com.mocott.smp.feedback.service.impl;
 import com.mocott.smp.feedback.service.TSFeedbackServiceI;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.feedback.entity.TSFeedbackEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -36,8 +38,23 @@ public class TSFeedbackServiceImpl extends CommonServiceImpl implements TSFeedba
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 根据用户名获取留言信息
+	 * @param userName
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<TSFeedbackEntity> getFeedbackSByUserName(String userName) throws Exception {
+		String query = " from TSFeedbackEntity o where o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<TSFeedbackEntity> feedbackList = queryObject.list();
+		return feedbackList;
+	}
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

@@ -1,13 +1,25 @@
 package com.mocott.smp.order.controller;
+import com.mocott.smp.base.entity.TSConfigcodeEntity;
+import com.mocott.smp.base.service.TSConfigcodeServiceI;
+import com.mocott.smp.base.service.TSIndexServiceI;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
 import com.mocott.smp.order.service.OrderInjectInfoServiceI;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
+import com.mocott.smp.util.MakeOrderNum;
+import com.mocott.smp.util.OrderConstant;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
+import org.jeecgframework.web.system.service.MutiLangServiceI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,14 +34,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,14 +48,11 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,7 +65,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -87,6 +95,16 @@ public class OrderInjectInfoController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
+	@Autowired
+	private TSConfigcodeServiceI tSConfigcodeServiceI;
+	@Autowired
+	private FrontUserRegisterServiceI frontUserRegisterServiceI;
+	@Autowired
+	private MutiLangServiceI mutiLangService;
+	@Autowired
+	private TSIndexServiceI tsIndexServiceI;
+	@Autowired
+	private FrontUserMemberServiceI frontUserMemberServiceI;
 
     /**
      * 财务明细列表 页面跳转
@@ -115,8 +133,247 @@ public class OrderInjectInfoController extends BaseController {
      */
     @RequestMapping(params = "toTeamList")
     public ModelAndView toTeamList(HttpServletRequest request) {
+		//会员列表
+		HttpSession session = ContextHolderUtils.getSession();
+		FrontUserRegisterEntity user = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+		List<FrontUserRegisterEntity> childUsers = frontUserRegisterServiceI.getChildUserByIntro(user.getUserName());
+		StringBuffer us = new StringBuffer();
+		StringBuffer usquery = new StringBuffer();
+		us.append(user.getUserName() + ",");
+		usquery.append("'" + user.getUserName() + "',");
+		if(childUsers != null && childUsers.size()>0) {
+			for (int i=0; i<childUsers.size(); i++) {
+				FrontUserRegisterEntity userRegister = childUsers.get(i);
+				us.append(userRegister.getUserName() + ",");
+				usquery.append("'" +userRegister.getUserName() + "',");
+			}
+		}
+		String users = us.toString();
+		String usersquery = usquery.toString();
+		if(StringUtil.isNotEmpty(users)) {
+			users = users.substring(0, users.length()-1);
+			usersquery = usersquery.substring(0, usersquery.length()-1);
+		}
+		String uname = (String)request.getParameter("un");
+		//会员订单列表
+		try {
+			List<OrderInjectInfoEntity> orders = null;
+			if(StringUtil.isNotEmpty(uname)) {
+				orders = orderInjectInfoService.getListByUsers("'" + uname + "'");
+			} else  {
+				orders = orderInjectInfoService.getListByUsers(usersquery);
+			}
+
+			request.setAttribute("users", users);
+			request.setAttribute("orders", orders);
+		}catch (Exception e) {
+
+		}
+
         return new ModelAndView("smp/order/teamListMain");
     }
+
+	/**
+	 * 生成订单
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "generalOrder")
+	@ResponseBody
+	public AjaxJson generalOrder(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "注入资金订单添加成功";
+		double priceD = 0.0;
+		String price = request.getParameter("price");
+		String randCode = request.getParameter("code");
+		String safePwd = request.getParameter("threePwin");
+		String userName = request.getParameter("inUserName");
+		HttpSession session = ContextHolderUtils.getSession();
+
+		if(StringUtil.isNotEmpty(price)) {
+			priceD = Double.parseDouble(price);
+		}
+		try{
+			String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
+			FrontUserRegisterEntity userRegister = frontUserRegisterServiceI.queryEntityByUserName(userName);
+			String baseLimit = tsIndexServiceI.getBaseLimit();
+			String baseTimes = tsIndexServiceI.getBaseTimes();
+			double baseLimitD = Double.parseDouble(baseLimit);
+			double baseTimesD = Double.parseDouble(baseTimes);
+
+			List<OrderInjectInfoEntity> injectInfos = orderInjectInfoService.getListByUser(userName);
+			//有首付款\尾款未支付完成的订单,请完成后再次注入资金
+			List<OrderInjectInfoEntity> unPayList = orderInjectInfoService.getListByUndonePay(userName);
+			//在保存期内才可以注入资金
+			List<OrderInjectInfoEntity> saveList = orderInjectInfoService.getListByUndoneSave(userName);
+			//是否已注入第一单
+			List<OrderInjectInfoEntity> firstList = orderInjectInfoService.getListByFirst(userName);
+			boolean hasFirst = false;
+			if(firstList != null && firstList.size()>0) {
+				hasFirst = true;
+			}
+			FrontUserMemberEntity userMemberEntity = frontUserMemberServiceI.queryEntityByUserName(userName);
+
+			//是否有未提取的订单
+			String walletType = getOrderWallet(userName);
+			boolean hasDF = false;
+			boolean hasBX = false;
+			if("1".equals(walletType) && hasFirst && !"1".equals(userMemberEntity.getVfield1())) { //待返钱包订单
+				hasDF = true;
+			}
+			if("2".equals(walletType) && hasFirst && "1".equals(userMemberEntity.getVfield1())) { //本息钱包订单
+				hasBX = true;
+			}
+
+			if(unPayList != null && unPayList.size()>0) {
+				j.setMsg("有首付款或尾款未支付完成的订单,请完成后再注入资金!");
+				j.setSuccess(false);
+			} else if("0".equals(walletType)) {
+				j.setMsg("有待返钱包和本息钱包的未完成的订单,请完成后再次注入资金!");
+				j.setSuccess(false);
+			} else if(hasDF) {
+				j.setMsg("有待返钱包未提取,请先提取后再注入资金!");
+				j.setSuccess(false);
+			} else if(hasBX) {
+				j.setMsg("有本息钱包或直推钱包未提取,请先提取后再注入资金!");
+				j.setSuccess(false);
+			} else if (StringUtils.isEmpty(randCode)) {
+				j.setMsg(mutiLangService.getLang("common.enter.verifycode"));
+				j.setSuccess(false);
+			} else if (!randCode.equalsIgnoreCase(String.valueOf(session.getAttribute("randCode")))) {
+				j.setMsg(mutiLangService.getLang("common.verifycode.error"));
+				j.setSuccess(false);
+			} else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
+				j.setMsg("安全密码错误,请确认!");
+				j.setSuccess(false);
+			} else if(priceD%baseTimesD >0 || priceD == 0){
+				j.setMsg("注入资金必须是"+baseTimes+"的倍数");
+				j.setSuccess(false);
+			} else if(priceD>baseLimitD){
+				j.setMsg("注入资金不能超过"+baseLimit+"的限额");
+				j.setSuccess(false);
+			} else {
+				double firstPay = 0.0;
+				double firstPayRatio = 90;
+				//配置的首付比例
+				TSConfigcodeEntity tsConfigcodeEntity = tSConfigcodeServiceI.getConfigValue(OrderConstant.Sys_First_PayRatio);
+				if(tsConfigcodeEntity != null) {
+					String firstPayRatioS = tsConfigcodeEntity.getConfigValue();
+					if(StringUtil.isNotEmpty(firstPayRatioS)) {
+						firstPayRatio = Double.parseDouble(firstPayRatioS);
+					}
+				}
+				//计算首付比例
+				firstPay = firstPayRatio * priceD / 100.00;
+				Date now = new Date();
+				MakeOrderNum orderNum = new MakeOrderNum();
+				OrderInjectInfoEntity orderInjectInfo = new OrderInjectInfoEntity();
+				orderInjectInfo.setUsername(userName);
+				orderInjectInfo.setOrderCode(orderNum.makeOrderNum("P"));
+				orderInjectInfo.setOrderMoney(priceD);
+				orderInjectInfo.setOrderStatus(OrderConstant.Order_First_Pay); //产生订单,待支付首付款
+				orderInjectInfo.setOrderTime(now);
+				orderInjectInfo.setInterest(0.0); //应得利息
+				orderInjectInfo.setFirstPay(firstPay); //首付款金额
+				orderInjectInfo.setEndPay(priceD-firstPay);
+				orderInjectInfo.setFirstEndInternal(tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_First) != null ?
+						tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_First).getConfigValue():"5"); //收付款区间时间(小时)
+				orderInjectInfo.setSaveInternal(
+						tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Save) != null ?
+								tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Save).getConfigValue():"5"
+				);
+				orderInjectInfo.setRestRate(
+						tSConfigcodeServiceI.getConfigValue(OrderConstant.Rest_Rate) != null ?
+								Double.parseDouble(tSConfigcodeServiceI.getConfigValue(OrderConstant.Rest_Rate).getConfigValue()): 1.0
+						); //利息比例为1%
+				orderInjectInfo.setWaitStartTime(now);
+				String inter = tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Cycle) != null ?
+						tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Cycle).getConfigValue():"480";
+				orderInjectInfo.setWaitInternal(inter);
+				if(inter != null) {
+
+				}
+				orderInjectInfo.setWaitEndTime(DateUtils.getDateAdd(Integer.parseInt(inter),now));
+				orderInjectInfo.setInputtime(now);
+				orderInjectInfo.setInserttimeforhis(now);
+				orderInjectInfo.setOperatetimeforhis(now);
+
+				orderInjectInfo.setVfield1(getOrderWallet(userName));
+				if(injectInfos == null || injectInfos.size()==0) {
+					orderInjectInfo.setVfield2("1"); //第一次订单
+				}
+
+				orderInjectInfoService.save(orderInjectInfo);
+				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+				j.setMsg(message);
+				j.setSuccess(true);
+			}
+
+		}catch (Exception e) {
+			e.printStackTrace();
+			message = "注入资金订单添加失败";
+			j.setMsg(message);
+			j.setSuccess(false);
+//			throw new BusinessException(e.getMessage());
+		}
+
+		return j;
+	}
+
+	/**
+	 * 获取当前订单注入的钱包
+	 * @return
+     */
+	private String getOrderWallet(String userName) throws Exception{
+		String walletType = "1"; //1-待返钱包 2-本息钱包
+		//未完成的待返钱包
+		List<OrderInjectInfoEntity> orderInBackList = orderInjectInfoService.getListByUndoneBack(userName);
+		//未完成的本息钱包
+		List<OrderInjectInfoEntity> orderInCouponList = orderInjectInfoService.getListByUndoneCoupon(userName);
+		//有待返钱包未完成,再次注入时订单为本息钱包
+		if(orderInBackList != null && orderInBackList.size()>0 && orderInCouponList != null &&
+				orderInCouponList.size()>0) {
+			return "0";
+		}
+		if(orderInBackList != null && orderInBackList.size()>0) {
+			walletType = "2";
+		} else if(orderInCouponList != null && orderInCouponList.size()>0) {
+			walletType = "1";
+		}
+		return walletType;
+	}
+
+	/**
+	 * 获取未完成的订单信息列表
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "getUdOrderList")
+	@ResponseBody
+	public AjaxJson getUnDoneOrderList(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		FrontUserRegisterEntity userRegisterEntity = ResourceUtil.getSessionFrontUser();
+		try{
+			if(userRegisterEntity == null) {
+				throw new Exception("当前用户为空,请重新登录");
+			}
+			message = "获取订单列表成功";
+			List<OrderInjectInfoEntity> orderInjectList = orderInjectInfoService.getUndoneList(userRegisterEntity.getUserName());
+			j.setObj(orderInjectList);
+			systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
+			j.setMsg(message);
+		}catch (Exception e) {
+			e.printStackTrace();
+			message = "获取订单列表失败";
+			throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
+
+
 
 	/**
 	 * easyui AJAX请求数据
@@ -124,7 +381,6 @@ public class OrderInjectInfoController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
 
 	@RequestMapping(params = "datagrid")
@@ -198,7 +454,6 @@ public class OrderInjectInfoController extends BaseController {
 	/**
 	 * 添加注入资金订单表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
@@ -222,7 +477,6 @@ public class OrderInjectInfoController extends BaseController {
 	/**
 	 * 更新注入资金订单表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")
@@ -272,7 +526,231 @@ public class OrderInjectInfoController extends BaseController {
 		}
 		return new ModelAndView("/order/orderInjectInfo-update");
 	}
-	
+
+	/**
+	 * 更新注入资金订单表
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "doCheckPay")
+	@ResponseBody
+	public AjaxJson doCheckPay( HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "支付款项前进行校验成功";
+		try {
+			String orderCode = request.getParameter("orderCode");
+			String orderType = request.getParameter("orderType");
+			FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+			if(frontUser == null) {
+				message = "用户登录超时,请重新登录!";
+				j.setMsg(message);
+				j.setSuccess(false);
+			} else {
+				String userName = frontUser.getUserName();
+				List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
+				OrderInjectInfoEntity orderInject = null;
+				if(orderInList != null && orderInList.size()>0) {
+					orderInject = orderInList.get(0);
+				}
+				if(orderInject == null) {
+					message = "订单信息无效,请联系管理员!";
+					j.setMsg(message);
+					j.setSuccess(false);
+				} else {
+					if("1".equals(orderType)) {
+						if(StringUtil.isNotEmpty(orderInject.getFirstPayTime())) { //支付首付款
+							message = "订单首付款已支付,请刷新页面查看!";
+							j.setMsg(message);
+							j.setSuccess(false);
+						} else {
+							j.setMsg(message);
+							j.setObj(orderInject.getFirstPay());
+							j.setSuccess(true);
+						}
+					} else if("2".equals(orderType)) {
+						if(StringUtil.isNotEmpty(orderInject.getEndPayTime())) { //支付尾款
+							message = "订单尾款已支付,请刷新页面查看";
+							j.setMsg(message);
+							j.setSuccess(false);
+						} else {
+							j.setMsg(message);
+							j.setObj(orderInject.getEndPay());
+							j.setSuccess(true);
+						}
+					}
+				}
+			}
+			systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = "支付前校验异常,请稍后重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
+	/**
+	 * 支付确认
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "doPayConfirm")
+	@ResponseBody
+	public AjaxJson doPayConfirm(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "订单支付成功";
+		FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+		if(frontUser == null) {
+			message = "用户登录超时,请重新登录!";
+			j.setMsg(message);
+			j.setSuccess(false);
+		}
+		try {
+			String orderCode = request.getParameter("payOrderCode");
+			String orderType = request.getParameter("payOrderType");
+			String userName = frontUser.getUserName();
+			List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
+			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
+			FrontUserMemberEntity userMemberParent = frontUserMemberServiceI.queryEntityByUserName(frontUser.getIntroducer());
+
+			OrderInjectInfoEntity orderInject = null;
+			if(orderInList != null && orderInList.size()>0) {
+				orderInject = orderInList.get(0);
+			}
+			if(orderInject == null) {
+				message = "订单信息无效,请联系管理员!";
+				j.setMsg(message);
+				j.setSuccess(false);
+			} else {
+				if("1".equals(orderType)) {
+					if(StringUtil.isNotEmpty(orderInject.getFirstPayTime())) { //支付首付款
+						message = "订单首付款已支付,请刷新页面查看!";
+						j.setMsg(message);
+						j.setSuccess(false);
+					} else {
+						orderInject.setFirstPayTime(new Date());
+						orderInject.setOrderStatus(OrderConstant.Order_Final_Pay);
+						orderInjectInfoService.save(orderInject); //保存
+						j.setMsg(message);
+						j.setObj(orderInject.getFirstPay());
+						j.setSuccess(true);
+					}
+				} else if("2".equals(orderType)) {
+					if(StringUtil.isNotEmpty(orderInject.getEndPayTime())) { //支付尾款
+						message = "订单尾款已支付,请刷新页面查看";
+						j.setMsg(message);
+						j.setSuccess(false);
+					} else {
+						orderInject.setEndPayTime(new Date());
+						orderInject.setOrderStatus(OrderConstant.Order_Confirm_Period);
+
+						if(userMemberParent != null) {
+							String userLevel = userMemberParent.getUserLevel();
+							int tiquRate = 0;
+							if("1".equals(userLevel)) {
+								tiquRate = 1;
+							}
+							if("2".equals(userLevel)) {
+								tiquRate = 3;
+							}
+							if("3".equals(userLevel)) {
+								tiquRate = 5;
+							}
+							if("4".equals(userLevel)) {
+								tiquRate = 8;
+							}
+							userMemberParent.setIntroWallet(userMemberParent.getIntroWallet() + (tiquRate * orderInject.getOrderMoney()/100));
+							frontUserMemberServiceI.saveOrUpdate(userMemberParent);
+						}
+
+						orderInjectInfoService.save(orderInject); //保存
+						j.setMsg(message);
+						j.setObj(orderInject.getEndPay());
+						j.setSuccess(true);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = "支付系统出现异常,请稍后重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			throw new BusinessException(e.getMessage());
+		}
+
+		return j;
+	}
+
+	/**
+	 * 转存到钱包中
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "saveInWl")
+	@ResponseBody
+	public AjaxJson saveInWallet(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "转出到钱包完成";
+		FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+		if(frontUser == null) {
+			message = "用户登录超时,请重新登录!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			return j;
+		}
+		String userName = frontUser.getUserName();
+		FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
+		if(userMember == null) {
+			message = "用户状态异常,请联系管理员!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			return j;
+		}
+		try {
+			String orderCode = request.getParameter("payOrderCode");
+			String orderType = null;
+			List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
+			OrderInjectInfoEntity orderInject = null;
+			if(orderInList != null && orderInList.size()>0) {
+				orderInject = orderInList.get(0);
+			}
+			if(orderInject == null) {
+				message = "订单信息无效,请联系管理员!";
+				j.setMsg(message);
+				j.setSuccess(false);
+			} else {
+				orderType = orderInject.getVfield1();
+				if("1".equals(orderType) || "2".equals(orderType)) {
+					if(StringUtil.isNotEmpty(orderInject.getDfield1())) { //提现时间
+						message = "订单已进行过提现,请刷新页面查看!";
+						j.setMsg(message);
+						j.setSuccess(false);
+					} else {
+						orderInjectInfoService.doSaveInWallet(orderInject, userMember);
+						j.setMsg(message);
+						j.setSuccess(true);
+					}
+				} else {
+					message = "订单异常,请联系管理员!";
+					j.setMsg(message);
+					j.setSuccess(false);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = "提现系统出现异常,请稍后重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			//throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
 	/**
 	 * 导入功能跳转
 	 * 

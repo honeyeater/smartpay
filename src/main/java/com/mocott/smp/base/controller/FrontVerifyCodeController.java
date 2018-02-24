@@ -1,13 +1,19 @@
 package com.mocott.smp.base.controller;
 import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
 import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
+import org.jeecgframework.web.system.service.MutiLangServiceI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,14 +28,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,14 +42,11 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,7 +59,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -87,8 +89,167 @@ public class FrontVerifyCodeController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
+	@Autowired
+	private MutiLangServiceI mutiLangService;
+	@Autowired
+	private FrontUserRegisterServiceI frontUserRegisterServiceI;
 
+	/**
+	 * 生成短信验证码
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "verifyCode")
+	@ResponseBody
+	public AjaxJson generalVerifyCode(HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		try{
+			String phoneNo = request.getParameter("phoneNo");
+			String randCode = request.getParameter("vfCode");
+			if(StringUtil.isNotEmpty(phoneNo)) {
+				// 短信验证码
+				int verifyCode = (int)(Math.random()*1000000);
+				if (StringUtils.isEmpty(randCode)) {
+					j.setMsg(mutiLangService.getLang("common.enter.verifycode"));
+					j.setSuccess(false);
+				} else if (!randCode.equalsIgnoreCase(String.valueOf(session.getAttribute("randCode")))) {
+					j.setMsg(mutiLangService.getLang("common.verifycode.error"));
+					j.setSuccess(false);
+				} else if (isInBlackList(IpUtil.getIpAddr(request))){
+					j.setMsg(mutiLangService.getLang("common.blacklist.error"));
+					j.setSuccess(false);
+				}else if(hasThreeCount(phoneNo)) {
+					j.setMsg("手机号获取短信验证码频繁,请稍后重试!");
+					j.setSuccess(false);
+				} else {
+					//保存验证码
+					FrontVerifyCodeEntity frontVerifyCodeEntity = new FrontVerifyCodeEntity();
+					frontVerifyCodeEntity.setPhoneno(phoneNo);
+					frontVerifyCodeEntity.setCreateTime(new Date());
+					frontVerifyCodeEntity.setValidstatus("1");
+					frontVerifyCodeEntity.setIsuse("0");
+					frontVerifyCodeEntity.setValidCode(verifyCode+"");
+					frontVerifyCodeEntity.setType("1"); //1-注册验证码
+					String sendContent = "金润理财平台注册短信验证码:" + verifyCode + ",请再三分钟内使用。";
+					frontVerifyCodeEntity.setSendTime(new Date());
+					frontVerifyCodeEntity.setSendContent(sendContent);
+					//发送短信
+					// TODO: 2018/2/18
+
+					frontVerifyCodeService.save(frontVerifyCodeEntity);
+					message = "短信发送成功";
+					systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
+					j.setMsg(message);
+					j.setSuccess(true);
+				}
+			} else {
+				j.setMsg("手机号码为空,请输入后重试");
+				j.setSuccess(false);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			message = "短信发送成功，请重试";
+			j.setSuccess(false);
+			j.setMsg(message);
+			throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
+	/**
+	 * 生成短信验证码
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "smsCode")
+	@ResponseBody
+	public AjaxJson generalSmsCode(HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		try{
+			String safePwd = request.getParameter("vfCode"); //安全密码
+			FrontUserRegisterEntity user = ResourceUtil.getSessionFrontUser();
+			String userName = user.getUserName();
+			String phoneNo = user.getPhoneno();
+			FrontUserRegisterEntity userRegister = frontUserRegisterServiceI.queryEntityByUserName(userName);
+			String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
+			if(StringUtil.isNotEmpty(phoneNo)) {
+				// 短信验证码
+				int verifyCode = (int)(Math.random()*1000000);
+				if (StringUtil.isEmpty(safePwd)) {
+					j.setMsg("安全密码为空,请确认!");
+					j.setSuccess(false);
+				} else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
+					j.setMsg("安全密码错误,请确认!");
+					j.setSuccess(false);
+				} else if(hasThreeCount(phoneNo)) {
+					j.setMsg("手机号获取短信验证码频繁,请稍后重试!");
+					j.setSuccess(false);
+				} else {
+					//保存验证码
+					FrontVerifyCodeEntity frontVerifyCodeEntity = new FrontVerifyCodeEntity();
+					frontVerifyCodeEntity.setPhoneno(phoneNo);
+					frontVerifyCodeEntity.setCreateTime(new Date());
+					frontVerifyCodeEntity.setValidstatus("1");
+					frontVerifyCodeEntity.setIsuse("0");
+					frontVerifyCodeEntity.setValidCode(verifyCode+"");
+					frontVerifyCodeEntity.setType("2"); //1-提取验证码
+					String sendContent = "金润理财平台注册短信验证码:" + verifyCode + ",请在三分钟内使用!";
+					frontVerifyCodeEntity.setSendTime(new Date());
+					frontVerifyCodeEntity.setSendContent(sendContent);
+					//发送短信
+					// TODO: 2018/2/18
+					frontVerifyCodeService.save(frontVerifyCodeEntity);
+					message = "短信发送成功";
+					systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
+					j.setMsg(message);
+					j.setSuccess(true);
+				}
+			} else {
+				j.setMsg("手机号码为空,请输入后重试");
+				j.setSuccess(false);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			message = "短信发送成功，请重试";
+			j.setSuccess(false);
+			j.setMsg(message);
+			throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
+	/**
+	 * 判断同一个号码是否在1个小时内发送三次
+	 * @param phoneNo
+	 * @return
+     */
+	private boolean hasThreeCount(String phoneNo) {
+		try {
+			String beforeTime = DateUtils.getDateSub(60);
+			String condition = " createTime > DATE_FORMAT('" + beforeTime + "','%Y-%m-%d %H:%i:%s') ";
+			List<FrontVerifyCodeEntity> vfs = frontVerifyCodeService.getVerfiyCodeByConditionType(condition, "2");
+			if(vfs != null && vfs.size()>3) {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * IP地址黑名单校验
+	 * @param ip
+	 * @return
+	 */
+	private boolean isInBlackList(String ip){
+		Long orgNum =systemService.getCountForJdbc("select count(*) from t_s_black_list where ip =  '" + ip + "'");
+		return orgNum!=0?true:false;
+	}
 
 	/**
 	 * 验证码信息表列表 页面跳转
@@ -106,7 +267,6 @@ public class FrontVerifyCodeController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
 
 	@RequestMapping(params = "datagrid")
@@ -180,7 +340,6 @@ public class FrontVerifyCodeController extends BaseController {
 	/**
 	 * 添加验证码信息表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
@@ -204,7 +363,6 @@ public class FrontVerifyCodeController extends BaseController {
 	/**
 	 * 更新验证码信息表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")

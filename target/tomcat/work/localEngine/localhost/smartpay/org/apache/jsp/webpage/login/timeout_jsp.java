@@ -60,17 +60,15 @@ public final class timeout_jsp extends org.apache.jasper.runtime.HttpJspBase
       out = pageContext.getOut();
       _jspx_out = out;
 
-      out.write('\r');
       out.write('\n');
-      out.write("\r\n");
-      out.write("\r\n");
-      out.write("\r\n");
-      out.write("\r\n");
+      out.write("\n");
+      out.write("\n");
+      out.write("\n");
+      out.write("\n");
  
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path;
 
-      out.write('\r');
       out.write('\n');
       //  c:set
       org.apache.taglibs.standard.tag.rt.core.SetTag _jspx_th_c_005fset_005f0 = (org.apache.taglibs.standard.tag.rt.core.SetTag) _005fjspx_005ftagPool_005fc_005fset_0026_005fvar_005fvalue_005fnobody.get(org.apache.taglibs.standard.tag.rt.core.SetTag.class);
@@ -86,28 +84,28 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
         return;
       }
       _005fjspx_005ftagPool_005fc_005fset_0026_005fvar_005fvalue_005fnobody.reuse(_jspx_th_c_005fset_005f0);
-      out.write("\r\n");
-      out.write("<!DOCTYPE html>\r\n");
-      out.write("\r\n");
-      out.write("<!-- Link JScript-->\r\n");
-      out.write("<script type=\"text/javascript\" src=\"plug-in/jquery/jquery-1.8.3.min.js\"></script>\r\n");
-      out.write("<script type=\"text/javascript\" src=\"plug-in/jquery/jquery.cookie.js\"></script>\r\n");
-      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/jquery-jrumble.js\"></script>\r\n");
-      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/jquery.tipsy.js\"></script>\r\n");
-      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/iphone.check.js\"></script>\r\n");
-      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/login.js\"></script>\r\n");
-      out.write("<script type=\"text/javascript\">\r\n");
-      out.write("\t    //判断如果当前页面不为主框架，则将主框架进行跳转\r\n");
+      out.write("\n");
+      out.write("<!DOCTYPE html>\n");
+      out.write("\n");
+      out.write("<!-- Link JScript-->\n");
+      out.write("<script type=\"text/javascript\" src=\"plug-in/jquery/jquery-1.8.3.min.js\"></script>\n");
+      out.write("<script type=\"text/javascript\" src=\"plug-in/jquery/jquery.cookie.js\"></script>\n");
+      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/jquery-jrumble.js\"></script>\n");
+      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/jquery.tipsy.js\"></script>\n");
+      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/iphone.check.js\"></script>\n");
+      out.write("<script type=\"text/javascript\" src=\"plug-in/login/js/login.js\"></script>\n");
+      out.write("<script type=\"text/javascript\">\n");
+      out.write("\t    //判断如果当前页面不为主框架，则将主框架进行跳转\n");
       out.write("\t  \tvar tagert_URL = \"");
       out.print(request.getContextPath());
-      out.write("/loginController.do?login\";\r\n");
-      out.write("\t    if(self==top){\r\n");
-      out.write("\t    \twindow.location.href = tagert_URL;\r\n");
-      out.write("\t    }else{\r\n");
-      out.write("\t    \ttop.location.href = tagert_URL;\r\n");
-      out.write("\t    }\r\n");
-      out.write("\t  </script>\r\n");
-      out.write("</body>\r\n");
+      out.write("/userLoginController.do?login\";\n");
+      out.write("\t    if(self==top){\n");
+      out.write("\t    \twindow.location.href = tagert_URL;\n");
+      out.write("\t    }else{\n");
+      out.write("\t    \ttop.location.href = tagert_URL;\n");
+      out.write("\t    }\n");
+      out.write("\t  </script>\n");
+      out.write("</body>\n");
       out.write("</html>");
     } catch (Throwable t) {
       if (!(t instanceof SkipPageException)){

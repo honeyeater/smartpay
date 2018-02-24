@@ -1,10 +1,17 @@
 package com.mocott.smp.order.service.impl;
+import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
+import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
 import com.mocott.smp.order.service.OrderDrawInfoServiceI;
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.order.entity.OrderDrawInfoEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -17,7 +24,11 @@ import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
 @Transactional
 public class OrderDrawInfoServiceImpl extends CommonServiceImpl implements OrderDrawInfoServiceI {
 
-	
+	@Autowired
+	private FrontUserMemberServiceI frontUserMemberServiceI;
+	@Autowired
+	private FrontVerifyCodeServiceI frontVerifyCodeServiceI;
+
  	public void delete(OrderDrawInfoEntity entity) throws Exception{
  		super.delete(entity);
  		//执行删除操作增强业务
@@ -36,8 +47,36 @@ public class OrderDrawInfoServiceImpl extends CommonServiceImpl implements Order
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 获取未完成的提取资金列表
+	 * @param userName
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<OrderDrawInfoEntity> getUndoneList(String userName) throws Exception {
+		String query = " from OrderDrawInfoEntity o where o.orderStatus in ('01','02') and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderDrawInfoEntity> orderDrawInfoList = queryObject.list();
+		return orderDrawInfoList;
+	}
+
+	/**
+	 * 生产待提出的订单
+	 * @param orderDrawInfo
+	 * @param userMember
+	 * @throws Exception
+     */
+	@Override
+	public void doSaveOutOrder(OrderDrawInfoEntity orderDrawInfo, FrontUserMemberEntity userMember, FrontVerifyCodeEntity verifyCode) throws Exception {
+		this.save(orderDrawInfo);
+		frontUserMemberServiceI.saveOrUpdate(userMember);
+		frontVerifyCodeServiceI.saveOrUpdate(verifyCode);
+	}
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return
@@ -63,7 +102,6 @@ public class OrderDrawInfoServiceImpl extends CommonServiceImpl implements Order
  	}
  	/**
 	 * 删除操作增强业务
-	 * @param id
 	 * @return
 	 */
 	private void doDelBus(OrderDrawInfoEntity t) throws Exception{

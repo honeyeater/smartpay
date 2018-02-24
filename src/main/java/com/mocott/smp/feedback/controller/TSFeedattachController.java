@@ -1,18 +1,23 @@
 package com.mocott.smp.feedback.controller;
 import com.mocott.smp.feedback.entity.TSFeedattachEntity;
 import com.mocott.smp.feedback.service.TSFeedattachServiceI;
+
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.jeecgframework.core.common.controller.BaseController;
@@ -22,14 +27,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,23 +41,19 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
-import org.springframework.web.bind.annotation.RequestMethod;
+
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.util.Map;
 import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
@@ -87,7 +86,55 @@ public class TSFeedattachController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
+
+
+	/**
+	 * 文件上传
+	 * @param myfile 前台就要用<input type="file" name="img_1"/>
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws IOException
+     */
+	@RequestMapping(params="fileUpload", method = RequestMethod.POST)
+	@ResponseBody
+	public AjaxJson fileUpload(@RequestParam(value = "img_1")MultipartFile myfile,
+						  HttpServletRequest request, HttpServletResponse response){
+		AjaxJson j = new AjaxJson();
+		String message = null;
+		//可以在上传文件的同时接收其它参数
+		String realPath = request.getSession().getServletContext().getRealPath("/upload");
+		//上传文件的原名(即上传前的文件名字)
+		String originalFilename = null;
+		//如果只是上传一个文件,则只需要MultipartFile类型接收文件即可,而且无需显式指定@RequestParam注解
+		//如果想上传多个文件,那么这里就要用MultipartFile[]类型来接收文件,并且要指定@RequestParam注解
+		//上传多个文件时,前台表单中的所有<input type="file"/>的name都应该是myfiles,否则参数里的myfiles无法获取到所有上传的文件
+		if(myfile.isEmpty()){
+			message = "请选择文件后上传";
+		}else{
+			originalFilename = myfile.getOriginalFilename();
+			System.out.println("文件原名: " + originalFilename);
+			System.out.println("文件名称: " + myfile.getName());
+			System.out.println("文件长度: " + myfile.getSize());
+			System.out.println("文件类型: " + myfile.getContentType());
+			System.out.println("========================================");
+			try{
+				//这里不必处理IO流关闭的问题,因为FileUtils.copyInputStreamToFile()方法内部会自动把用到的IO流关掉
+				FileUtils.copyInputStreamToFile(myfile.getInputStream(), new File(realPath, originalFilename));
+				String resPath = request.getContextPath() + "/upload/" + originalFilename;
+				message = "文件上传成功!";
+				j.setObj(resPath);
+			}catch(Exception e){
+				System.out.println("文件[" + originalFilename + "]上传失败,堆栈轨迹如下");
+				e.printStackTrace();
+				message = "文件上传失败";
+				throw new BusinessException(e.getMessage());
+			}
+			j.setMsg(message);
+		}
+
+		return j;
+	}
 
 
 	/**
@@ -106,7 +153,6 @@ public class TSFeedattachController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
 
 	@RequestMapping(params = "datagrid")
@@ -180,7 +226,6 @@ public class TSFeedattachController extends BaseController {
 	/**
 	 * 添加系统意见留言附件表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
@@ -204,7 +249,6 @@ public class TSFeedattachController extends BaseController {
 	/**
 	 * 更新系统意见留言附件表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")

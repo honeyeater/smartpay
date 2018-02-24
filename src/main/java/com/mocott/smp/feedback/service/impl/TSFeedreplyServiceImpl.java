@@ -1,10 +1,12 @@
 package com.mocott.smp.feedback.service.impl;
 import com.mocott.smp.feedback.service.TSFeedreplyServiceI;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.feedback.entity.TSFeedreplyEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -36,8 +38,24 @@ public class TSFeedreplyServiceImpl extends CommonServiceImpl implements TSFeedr
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 根据留言编号获取回复信息
+	 * @param feedbackId
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<TSFeedreplyEntity> getFeedreplysByFeedBackId(String feedbackId) throws Exception {
+		String query = " from TSFeedreplyEntity o where o.feedbackid = :feedbackId";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("feedbackId", feedbackId);
+		List<TSFeedreplyEntity> feedReplys = queryObject.list();
+
+		return feedReplys;
+	}
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

@@ -179,7 +179,7 @@
         <location>/webpage/common/404.htm</location>
     </error-page>
 	<session-config>
-		<session-timeout>30</session-timeout>
+		<session-timeout>60</session-timeout>
 	</session-config>
 	<welcome-file-list>
 		<welcome-file>/webpage/webfront/login.jsp</welcome-file>

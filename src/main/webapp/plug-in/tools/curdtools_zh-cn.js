@@ -1,9 +1,10 @@
-﻿﻿// update--begin--author:zhangjiaqiang date:20170621 for:如何避免console.log引起javascript的兼容问题 
+﻿// update--begin--author:zhangjiaqiang date:20170621 for:如何避免console.log引起javascript的兼容问题
 if(!window.console){
     window.console = {};
 }
-if(!window.console.log){
-    window.console.log = function(msg){};
+if(!window.console.log) {
+	window.console.log = function (msg) {
+	};
 }
 
 ﻿var basePath;

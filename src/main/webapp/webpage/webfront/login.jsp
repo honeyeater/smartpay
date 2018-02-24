@@ -110,8 +110,9 @@
                                         <div class="clearfix">
                                             <div style="float: right;margin-right: 10px;">
                                                 <label class="inline">
-                                <span class="lbl white">&nbsp; <a href="#" class="forgot-password-link">
+                                <span class="lbl white">&nbsp; <a href="frontUserRegisterController.do?goForget" class="forgot-password-link">
                                 忘记密码</a></span>
+
                                                 </label>
                                                 <i class="fa fa-question" style="color: white"></i>
                                             </div>
@@ -134,8 +135,6 @@
         </div>
     </div>
 </div>
-
-
 
 <script type="text/javascript" src="plug-in/jquery/jquery-1.8.3.min.js"></script>
 <script type="text/javascript" src="plug-in/jquery/jquery.cookie.js"></script>

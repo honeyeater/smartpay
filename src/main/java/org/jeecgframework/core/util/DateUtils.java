@@ -616,6 +616,47 @@ public class DateUtils extends PropertyEditorSupport {
 
 		return 0;
 	}
+
+	/**
+	 * 计算两个时间之间的差值，根据标志的不同而不同
+	 *
+	 * @param flag
+	 *            计算标志，表示按照年/月/日/时/分/秒等计算
+	 *            减数
+	 *            被减数
+	 * @return 两个日期之间的差值
+	 */
+	public static int dateDiffForDate(char flag, Date calSrca, Date calDesa) {
+		Calendar calSrc = Calendar.getInstance();
+		Calendar calDes = Calendar.getInstance();
+
+		calSrc.setTime(calSrca);
+		calDes.setTime(calDesa);
+
+		long millisDiff = getMillis(calSrc) - getMillis(calDes);
+
+		if (flag == 'y') {
+			return (calSrc.get(calSrc.YEAR) - calDes.get(calDes.YEAR));
+		}
+
+		if (flag == 'd') {
+			return (int) (millisDiff / DAY_IN_MILLIS);
+		}
+
+		if (flag == 'h') {
+			return (int) (millisDiff / HOUR_IN_MILLIS);
+		}
+
+		if (flag == 'm') {
+			return (int) (millisDiff / MINUTE_IN_MILLIS);
+		}
+
+		if (flag == 's') {
+			return (int) (millisDiff / SECOND_IN_MILLIS);
+		}
+
+		return 0;
+	}
     /**
      * String类型 转换为Date,
      * 如果参数长度为10 转换格式”yyyy-MM-dd“
@@ -649,5 +690,38 @@ public class DateUtils extends PropertyEditorSupport {
 	    calendar.setTime(getDate());
 	    return calendar.get(Calendar.YEAR);
 	  }
+
+	/**
+	 * 获取当前时间前的多少分钟前
+	 * @param mini
+	 * @return
+     */
+	public static String getDateSub(int mini) {
+		Calendar calendar = Calendar.getInstance();
+		/* HOUR_OF_DAY 指示一天中的小时 */
+		calendar.add(Calendar.MINUTE, -mini);
+//		calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.M) - mini);
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		System.out.println("一个小时前的时间：" + df.format(calendar.getTime()));
+		System.out.println("当前的时间：" + df.format(new Date()));
+		return df.format(calendar.getTime());
+	}
+
+	/**
+	 * 获取当前时间前的多少分钟前
+	 * @return
+	 */
+	public static Date getDateAdd(int hour, Date now) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(now);
+		/* HOUR_OF_DAY 指示一天中的小时 */
+		calendar.add(Calendar.HOUR, hour);
+//		calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.M) - mini);
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		System.out.println("一个小时前的时间：" + df.format(calendar.getTime()));
+		System.out.println("当前的时间：" + df.format(new Date()));
+//		return df.format(calendar.getTime());
+		return calendar.getTime();
+	}
 
 }

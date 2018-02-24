@@ -56,10 +56,10 @@
         </div>
     </div>
 </div>
-<div class="container" id="banner">
-    <div class="row">
-        <ol class="breadcrumb" id="navtitle">
-            <li><a href="userLoginController.do?toIndex">系统首页</a> </li>
-        </ol>
-    </div>
-</div>
+<%--<div class="container" id="banner">--%>
+    <%--<div class="row">--%>
+        <%--<ol class="breadcrumb" id="navtitle">--%>
+            <%--<li><a href="userLoginController.do?toIndex">系统首页</a> </li>--%>
+        <%--</ol>--%>
+    <%--</div>--%>
+<%--</div>--%>

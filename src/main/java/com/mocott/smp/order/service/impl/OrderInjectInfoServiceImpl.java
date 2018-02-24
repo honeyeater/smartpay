@@ -1,23 +1,28 @@
 package com.mocott.smp.order.service.impl;
 import com.mocott.smp .order.service.OrderInjectInfoServiceI;
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.util.OrderConstant;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
+import org.jeecgframework.core.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
 import java.io.Serializable;
-import org.jeecgframework.core.util.ApplicationContextUtil;
-import org.jeecgframework.core.util.MyClassLoader;
-import org.jeecgframework.core.util.StringUtil;
+
 import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
 
 @Service("orderInjectInfoService")
 @Transactional
 public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements OrderInjectInfoServiceI {
 
-	
+	@Autowired
+	private FrontUserMemberServiceI frontUserMemberServiceI;
+
  	public void delete(OrderInjectInfoEntity entity) throws Exception{
  		super.delete(entity);
  		//执行删除操作增强业务
@@ -30,14 +35,249 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
  		this.doAddBus(entity);
  		return t;
  	}
- 	
- 	public void saveOrUpdate(OrderInjectInfoEntity entity) throws Exception{
+
+	/**
+	 * 批量定时任务更新订单的状态
+	 */
+	@Override
+	public void changeOrderStauts() throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('03')";
+		Query queryObject = getSession().createQuery(query);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		Date now = new Date();
+		if(orderInjectInfoEntityList != null && orderInjectInfoEntityList.size()>0) {
+			for (int i=0; i<orderInjectInfoEntityList.size(); i++) {
+				OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList.get(i);
+				int saveI = (orderInjectInfoEntity.getSaveInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getSaveInternal()) : 360);
+				int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getWaitEndTime());
+				if(diffD > saveI || diffD == saveI) {
+					orderInjectInfoEntity.setOrderStatus(OrderConstant.Order_Period_Finish);
+					this.saveOrUpdate(orderInjectInfoEntity);
+				}
+			}
+		}
+
+	}
+
+	@Override
+	public void doSaveInWallet(OrderInjectInfoEntity orderInject, FrontUserMemberEntity userMember) throws Exception {
+		String orderType = orderInject.getVfield1();
+		if("1".equals(orderType)) {
+			orderInject.setDfield1(new Date()); //设置提现时间
+			orderInject.setOrderStatus(OrderConstant.Order_Done);
+			// 计算首付款时间与周期结束时间 + 保存期时间
+			int diff = DateUtils.dateDiffForDate('d', orderInject.getWaitEndTime(), orderInject.getFirstPayTime()) +
+					(Integer.parseInt(orderInject.getSaveInternal())/24);
+			orderInject.setInterestReal(orderInject.getRestRate() * orderInject.getOrderMoney() * diff /100);
+			this.saveOrUpdate(orderInject); //保存
+			//提取到订单金额待返钱包中
+			userMember.setBackWallet(orderInject.getOrderMoney());
+			//提取到利息到本息钱包中
+			userMember.setCouponWallet((orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal())+
+					(userMember.getCouponWallet()==null?0.00:userMember.getCouponWallet()));
+
+			userMember.setSumAmount(userMember.getSumAmount() + orderInject.getOrderMoney() + orderInject.getInterestReal());
+
+			frontUserMemberServiceI.saveOrUpdate(userMember);
+		}
+		if("2".equals(orderType)) {
+			orderInject.setDfield1(new Date()); //设置提现时间
+			orderInject.setOrderStatus(OrderConstant.Order_Done);
+			// 计算首付款时间与周期结束时间 + 保存期时间
+			int diff = DateUtils.dateDiffForDate('d', orderInject.getWaitEndTime(), orderInject.getFirstPayTime()) +
+					(Integer.parseInt(orderInject.getSaveInternal())/24);
+			orderInject.setInterestReal(orderInject.getRestRate() * orderInject.getOrderMoney() * diff/100); //计算利息
+			this.saveOrUpdate(orderInject); //保存
+			//提取到订单金额\利息到本息钱包中
+			userMember.setCouponWallet(orderInject.getOrderMoney()+
+					(orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal())+
+					(userMember.getCouponWallet()==null?0.00:userMember.getCouponWallet()));
+
+			userMember.setSumAmount(userMember.getSumAmount()+orderInject.getOrderMoney()+
+							(orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal()));
+
+			frontUserMemberServiceI.saveOrUpdate(userMember);
+		}
+	}
+
+	public void saveOrUpdate(OrderInjectInfoEntity entity) throws Exception{
  		super.saveOrUpdate(entity);
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 获取未完成的订单信息
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<OrderInjectInfoEntity> getUndoneList(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取订单列表信息
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUsers(String users) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.username in ("+users+")";
+		Query queryObject = getSession().createQuery(query);
+//		queryObject.setParameter("userName", users);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取订单列表信息
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUser(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的待返钱包订单
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndoneBack(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.vfield1 = '1' and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的待返钱包订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndoneATBack(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('02','03','04') and o.vfield1 = '1' and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的资金注入的订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndonePay(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02')  and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取保存期的订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndoneSave(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('03')  and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取是否有注入第一单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByFirst(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.vfield2 ='1'  and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的待返钱包订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByDoneBack(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('05') and o.vfield1 = '1' and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的本息钱包订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndoneCoupon(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.vfield1 = '2' and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的本息钱包订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndoneATCoupon(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('02','03','04') and o.vfield1 = '2' and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+
+
+	/**
+	 * 通过订单号获取订单信息
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByOrderCode(String orderCode, String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderCode = :orderCode and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		queryObject.setParameter("orderCode", orderCode);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

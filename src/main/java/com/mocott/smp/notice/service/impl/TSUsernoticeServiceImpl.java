@@ -1,10 +1,12 @@
 package com.mocott.smp.notice.service.impl;
 import com.mocott.smp.notice.service.TSUsernoticeServiceI;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.notice.entity.TSUsernoticeEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -36,8 +38,21 @@ public class TSUsernoticeServiceImpl extends CommonServiceImpl implements TSUser
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 获取有效的用户公告信息
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<TSUsernoticeEntity> queryAllNotice() throws Exception {
+		String query = " from TSUsernoticeEntity o where o.validstatus='1' order by o.inputtime desc";
+		Query queryObject = getSession().createQuery(query);
+		List<TSUsernoticeEntity> userNotices = queryObject.list();
+		return userNotices;
+	}
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

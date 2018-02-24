@@ -1,13 +1,13 @@
 package com.mocott.smp.login;
 
-import com.baomidou.kisso.SSOHelper;
-import com.baomidou.kisso.SSOToken;
-import com.baomidou.kisso.common.util.HttpUtil;
+import com.mocott.smp.base.service.TSIndexServiceI;
+import com.mocott.smp.order.service.OrderInjectInfoServiceI;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.common.controller.BaseController;
+import org.jeecgframework.core.common.exception.BusinessException;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.enums.SysThemesEnum;
@@ -30,7 +30,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -52,6 +51,9 @@ public class UserLoginController extends BaseController{
 
 	@Autowired
 	private MutiLangServiceI mutiLangService;
+
+	@Autowired
+	private TSIndexServiceI tsIndexServiceI;
 	
 	@Autowired
 	public void setSystemService(SystemService systemService) {
@@ -243,8 +245,18 @@ public class UserLoginController extends BaseController{
 			zIndexCookie.setMaxAge(3600*24);//一天
 			response.addCookie(zIndexCookie);
 
-//              return sysTheme.getIndexPath();
+			// 获取当前登录用户
+			HttpSession session = ContextHolderUtils.getSession();
+			session.setAttribute("currentUser", user);
+
+			getIndexInfo(request);
+
+			if(user != null && !"1".equals(user.getValidFlag())) {
+				return "smp/user/activateCodeMain";
+			}
+
 			return "webmain/hindex_main";
+
 		} else {
 			//单点登录 - 返回链接
 			String returnURL = (String)request.getSession().getAttribute("ReturnURL");
@@ -253,6 +265,7 @@ public class UserLoginController extends BaseController{
 			}
 
 			return "webfront/login";
+
 		}
 
 	}
@@ -265,8 +278,24 @@ public class UserLoginController extends BaseController{
      */
     @RequestMapping(params = "toIndex")
     public ModelAndView toIndex(HttpServletRequest request) {
-        return new ModelAndView("webmain/hindex_main");
+		getIndexInfo(request);
+		return new ModelAndView("webmain/hindex_main");
     }
+
+	public void getIndexInfo(HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
+		FrontUserRegisterEntity user = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+
+		String message = "获取登录用户信息成功";
+		try{
+			tsIndexServiceI.getIndexInfo(user.getUserName(), request);
+			systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
+		}catch (Exception e) {
+			e.printStackTrace();
+			message = "获取登录用户信息失败";
+			throw new BusinessException(e.getMessage());
+		}
+	}
 
 	/**
 	 * 退出系统

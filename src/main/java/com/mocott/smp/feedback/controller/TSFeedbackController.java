@@ -1,13 +1,19 @@
 package com.mocott.smp.feedback.controller;
+import com.mocott.smp.feedback.entity.TSFeedattachEntity;
 import com.mocott.smp.feedback.entity.TSFeedbackEntity;
+import com.mocott.smp.feedback.service.TSFeedattachServiceI;
 import com.mocott.smp.feedback.service.TSFeedbackServiceI;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.util.MakeFeedbackNum;
+import com.mocott.smp.util.MakeOrderNum;
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,14 +28,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,14 +42,11 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,7 +59,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -87,6 +89,8 @@ public class TSFeedbackController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
+	@Autowired
+	private TSFeedattachServiceI tSFeedattachServiceI;
 
 
     /**
@@ -115,7 +119,6 @@ public class TSFeedbackController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
 
 	@RequestMapping(params = "datagrid")
@@ -189,7 +192,6 @@ public class TSFeedbackController extends BaseController {
 	/**
 	 * 添加系统意见留言信息表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
@@ -197,13 +199,34 @@ public class TSFeedbackController extends BaseController {
 	public AjaxJson doAdd(TSFeedbackEntity tSFeedback, HttpServletRequest request) {
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		message = "系统意见留言信息表添加成功";
+		message = "意见留言信息反馈成功,敬请等待回复!";
 		try{
+			HttpSession session = ContextHolderUtils.getSession();
+			FrontUserRegisterEntity user = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+			tSFeedback.setUsername(user.getUserName());
+			tSFeedback.setFeedtime(new Date());
+			MakeFeedbackNum mon = new MakeFeedbackNum();
+			tSFeedback.setFeedbackid(mon.makeOrderNum("FB"));
+			//存储关联的图片信息
+			String filePaths = request.getParameter("img_1_d");
+			if(StringUtil.isNotEmpty(filePaths)) {
+				String[] files = filePaths.split(";");
+				List<TSFeedattachEntity> feedbackList = new ArrayList<>();
+				for(int i=0; i<files.length; i++) {
+					TSFeedattachEntity feedAttachEntity = new TSFeedattachEntity();
+					feedAttachEntity.setFeedbackid(tSFeedback.getFeedbackid());
+					feedAttachEntity.setSerialno((i+1)+"");
+					feedAttachEntity.setFilepath(files[i]);
+					feedAttachEntity.setUploadtime(new Date());
+					feedbackList.add(feedAttachEntity);
+				}
+				tSFeedattachServiceI.batchSave(feedbackList);
+			}
 			tSFeedbackService.save(tSFeedback);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}catch(Exception e){
 			e.printStackTrace();
-			message = "系统意见留言信息表添加失败";
+			message = "意见留言信息反馈失败,请稍后重试!";
 			throw new BusinessException(e.getMessage());
 		}
 		j.setMsg(message);

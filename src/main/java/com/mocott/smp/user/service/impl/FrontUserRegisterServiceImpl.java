@@ -92,7 +92,66 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
         return null;
     }
 
-    /**
+	/**
+	 * 根据推荐人姓名获取注册用户
+	 * @param introducer
+	 * @return
+     */
+	@Override
+	public List<FrontUserRegisterEntity> getChildUserByIntro(String introducer) {
+		String query = "from FrontUserRegisterEntity u where u.introducer = :introducer";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("introducer", introducer);
+		List<FrontUserRegisterEntity> users = queryObject.list();
+		return users;
+	}
+
+	/**
+	 * 根据身份证号获取注册用户
+	 * @param idNo
+	 * @return
+	 */
+	@Override
+	public List<FrontUserRegisterEntity> queryEntityByIdNo(String idNo) {
+		String query = "from FrontUserRegisterEntity u where u.identityNo = :identityNo";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("identityNo", idNo);
+		List<FrontUserRegisterEntity> users = queryObject.list();
+		return users;
+	}
+
+	/**
+	 * 根据手机号号获取注册用户
+	 * @param phoneNo
+	 * @return
+	 */
+	@Override
+	public FrontUserRegisterEntity queryEntityByPhoneNo(String phoneNo) {
+		String query = "from FrontUserRegisterEntity u where u.phoneno = :phoneno";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("phoneno", phoneNo);
+		List<FrontUserRegisterEntity> users = queryObject.list();
+		if(users != null && users.size()>0) {
+			return users.get(0);
+		}
+		return null;
+	}
+
+	/**
+	 * 根据用户名获取注册用户
+	 * @return
+	 */
+	@Override
+	public List<FrontUserRegisterEntity> queryParentEntity(String userName) {
+		String query = "select * from front_user_register u where FIND_IN_SET(u.username, getParentList('"+ userName+"'))";
+		Query queryObject = getSession().createSQLQuery(query).addEntity(FrontUserRegisterEntity.class);
+		List<FrontUserRegisterEntity> users = queryObject.list();
+		return users;
+	}
+
+
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return
@@ -118,7 +177,6 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
  	}
  	/**
 	 * 删除操作增强业务
-	 * @param id
 	 * @return
 	 */
 	private void doDelBus(FrontUserRegisterEntity t) throws Exception{

@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mocott.smp.base.service.TSIndexServiceI;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.annotation.JAuth;
@@ -69,6 +70,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 	public SystemService getSystemService() {
 		return systemService;
 	}
+
+	@Autowired
+	public TSIndexServiceI tsIndexServiceI;
 
 	@Autowired
 	public void setSystemService(SystemService systemService) {
@@ -133,6 +137,17 @@ public class AuthInterceptor implements HandlerInterceptor {
             FrontClient frontClient = FrontClientManager.getInstance().getClient(ContextHolderUtils.getSession().getId() + "front");
             FrontUserRegisterEntity currentLoginFrontUser = frontClient != null? frontClient.getUser():null;
 			if (frontClient != null && currentLoginFrontUser!=null ) {
+				tsIndexServiceI.getIndexInfo(currentLoginFrontUser.getUserName(), request);
+
+				if(!"1".equals(currentLoginFrontUser.getValidFlag())) {
+					if(requestPath.contains("frontUserActivatecodeController.do?activatecode")) {
+
+					} else {
+						forwardToActivate(request, response);
+						return false;
+					}
+				}
+
 				//onlinecoding的访问地址有规律可循，数据权限链接篡改
 				if(requestPath.equals("cgAutoListController.do?datagrid")) {
 					requestPath += "&configId=" +  request.getParameter("configId");
@@ -261,6 +276,17 @@ public class AuthInterceptor implements HandlerInterceptor {
 	@RequestMapping(params = "forword")
 	public ModelAndView forword(HttpServletRequest request) {
 		return new ModelAndView(new RedirectView("loginController.do?login"));
+	}
+
+	private void forwardToActivate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//update-start--Author:scott  Date:20160803 for：无登陆情况跳转登陆页
+		//超时，未登陆页面跳转
+		//response.sendRedirect(request.getServletContext().getContextPath()+"/loginController.do?login");
+//      update-start--Author:chenjin  Date:20160828 for：TASK #1324 【bug】Session超时后，重新登录页面显示在标签里,让它重新显示登录页面
+		response.sendRedirect(request.getSession().getServletContext().getContextPath()+"/frontUserActivatecodeController.do?activatecode");
+//      update-end--Author:chenjin  Date:20160828 for：TASK #1324 【bug】Session超时后，重新登录页面显示在标签里,让它重新显示登录页面
+		//request.getRequestDispatcher("loginController.do?login").forward(request, response);
+		//update-start--Author:scott  Date:20160803 for：无登陆情况跳转登陆页
 	}
 
 	private void forward(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

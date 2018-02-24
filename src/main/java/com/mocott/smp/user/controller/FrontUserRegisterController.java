@@ -1,15 +1,26 @@
 package com.mocott.smp.user.controller;
+import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
+import com.mocott.smp.base.entity.TSConfigcodeEntity;
+import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
+import com.mocott.smp.base.service.TSConfigcodeServiceI;
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
 import com.mocott.smp.user.service.FrontUserRegisterServiceI;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.util.OrderConstant;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.taskdefs.condition.Http;
+import org.jeecgframework.core.util.*;
 import org.jeecgframework.web.system.manager.FrontClientManager;
 import org.jeecgframework.web.system.pojo.base.FrontClient;
+import org.jeecgframework.web.system.service.MutiLangServiceI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -24,14 +35,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -40,14 +49,11 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -60,7 +66,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -89,6 +96,14 @@ public class FrontUserRegisterController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
+	@Autowired
+	private MutiLangServiceI mutiLangService;
+	@Autowired
+	private FrontVerifyCodeServiceI frontVerifyCodeService;
+	@Autowired
+	private TSConfigcodeServiceI tsConfigcodeServiceI;
+	@Autowired
+	private FrontUserMemberServiceI frontUserMemberServiceI;
 
     /**
      * 用户注册页面跳转
@@ -120,6 +135,8 @@ public class FrontUserRegisterController extends BaseController {
         return new ModelAndView("smp/user/updatepwdMain");
     }
 
+
+
     /**
      * 推广链接页面
      *
@@ -148,6 +165,10 @@ public class FrontUserRegisterController extends BaseController {
      */
     @RequestMapping(params = "gouserinfo")
     public ModelAndView gouserinfo(HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
+		FrontUserRegisterEntity userInfo = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+		request.setAttribute("userinfo", userInfo);
+
         return new ModelAndView("smp/user/userInfoMain");
     }
 
@@ -168,7 +189,7 @@ public class FrontUserRegisterController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 */
+	 */;
 
 	@RequestMapping(params = "datagrid")
 	public void datagrid(FrontUserRegisterEntity frontUserRegister,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
@@ -290,22 +311,236 @@ public class FrontUserRegisterController extends BaseController {
 	@RequestMapping(params = "doAdd")
 	@ResponseBody
 	public AjaxJson doAdd(FrontUserRegisterEntity frontUserRegister, HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		message = "注册用户信息表添加成功";
+		message = "用户注册成功请进行登录";
 		try{
-			frontUserRegisterService.save(frontUserRegister);
-			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
-            j.setObj(frontUserRegister.getUserName());
+			String randCode = request.getParameter("validCode"); //验证码
+			String phoneValidCode = request.getParameter("phoneValidCode"); //短信验证码
+			String phoneNo = request.getParameter("phoneno"); //手机号
+			String idNo = request.getParameter("identityNo"); //身份证号
+			//验证码验证
+			//短信验证码验证
+			//身份证号验证
+			FrontVerifyCodeEntity fvc = getHasValid(phoneValidCode, "1", phoneNo);
+			FrontUserRegisterEntity user = frontUserRegisterService.queryEntityByUserName(frontUserRegister.getUserName());
+			if (StringUtils.isEmpty(randCode)) {
+				j.setMsg(mutiLangService.getLang("common.enter.verifycode"));
+				j.setSuccess(false);
+			} else if (!randCode.equalsIgnoreCase(String.valueOf(session.getAttribute("randCode")))) {
+				j.setMsg(mutiLangService.getLang("common.verifycode.error"));
+				j.setSuccess(false);
+			} else if (hasRegister(idNo)) {
+				j.setMsg("此身份证号已注册,不能重复注册!");
+				j.setSuccess(false);
+			} else if (hasPhoneNoRegister(phoneNo)) {
+				j.setMsg("此手机号已注册,不能重复注册!");
+				j.setSuccess(false);
+			} else if (fvc == null) {
+				j.setMsg("短信验证码错误或已失效,请重试!");
+				j.setSuccess(false);
+			} else if(user != null) {
+				j.setMsg("此用户名已存在,请重新生成!");
+				j.setSuccess(false);
+			} else {
+				String pString = PasswordUtil.encrypt(frontUserRegister.getUserName(), frontUserRegister.getPassword(), PasswordUtil.getStaticSalt());
+				String pSafeString = PasswordUtil.encrypt(frontUserRegister.getUserName(), frontUserRegister.getSafePassword(), PasswordUtil.getStaticSalt());
+				frontUserRegister.setVfield1(frontUserRegister.getPassword());
+				frontUserRegister.setVfield2(frontUserRegister.getSafePassword());
+				frontUserRegister.setPassword(pString);
+				frontUserRegister.setSafePassword(pSafeString);
+				frontUserRegister.setRegisterTime(new Date()); //注册时间
+				frontUserRegister.setRegisterIp(IpUtil.getIpAddr(request)); //注册IP地址
+				frontUserRegister.setValidFlag("1");
+				frontUserRegister.setUserLevel("1");
+				Date now = new Date();
+				frontUserRegister.setInputtime(now);
+				frontUserRegister.setInserttimeforhis(now);
+				frontUserRegister.setOperatetimeforhis(now);
+
+				FrontUserMemberEntity frontUserMember = new FrontUserMemberEntity();
+				frontUserMember.setUsername(frontUserRegister.getUserName());
+				frontUserMember.setUserLevel(frontUserRegister.getUserLevel());
+				frontUserMember.setSumAmount(0.00);
+				frontUserMember.setIntroNums("0");
+				frontUserMember.setTeamNums("0");
+				frontUserMember.setCouponWallet(0.00);
+				frontUserMember.setIntroWallet(0.00);
+				frontUserMember.setBlockWallet(0.00);
+				frontUserMember.setRedWallet(0.00);
+				frontUserMember.setBackWallet(0.00);
+				frontUserMember.setActiveCost(0.00);
+				TSConfigcodeEntity tsConfigcode =  tsConfigcodeServiceI.getConfigValue(OrderConstant.Sum_Limit);
+				String sumLimit = "10000000";
+				if(tsConfigcode != null) {
+					sumLimit = tsConfigcode.getConfigValue();
+				}
+				frontUserMember.setSumLimit(Double.parseDouble(sumLimit));
+				frontUserMember.setUseLimit(0.00);
+				frontUserMember.setInputtime(now);
+				frontUserMember.setInserttimeforhis(now);
+				frontUserMember.setOperatetimeforhis(now);
+
+				List<FrontUserRegisterEntity> parentUsers = frontUserRegisterService.queryParentEntity(frontUserRegister.getIntroducer());
+				if(parentUsers != null && parentUsers.size()>0) {
+					for (int i=0; i< parentUsers.size(); i++) {
+						FrontUserRegisterEntity userRegister = parentUsers.get(i);
+						FrontUserMemberEntity frontUserMemberEntity = frontUserMemberServiceI.queryEntityByUserName(userRegister.getUserName());
+						if(frontUserMember != null) {
+
+							int teamNums = Integer.parseInt(frontUserMemberEntity.getTeamNums()== null ? "0":frontUserMemberEntity.getTeamNums()) + 1;
+							int introNums = Integer.parseInt(frontUserMemberEntity.getIntroNums()== null ? "0":frontUserMemberEntity.getIntroNums()) + 1;
+							if(userRegister.getUserName().equals(frontUserRegister.getIntroducer())) {
+								frontUserMemberEntity.setIntroNums(""+introNums);
+							}
+							frontUserMemberEntity.setTeamNums(""+introNums);
+							if(introNums>20) {
+								frontUserMemberEntity.setUserLevel("2");
+							}
+							if(introNums>50) {
+								frontUserMemberEntity.setUserLevel("3");
+							}
+							if(introNums>100) {
+								frontUserMemberEntity.setUserLevel("4");
+							}
+							userRegister.setUserLevel(frontUserMemberEntity.getUserLevel());
+							frontUserRegisterService.saveOrUpdate(userRegister);
+							frontUserMemberServiceI.saveOrUpdate(frontUserMemberEntity);
+						}
+					}
+				}
+
+				frontUserRegisterService.save(frontUserRegister);
+				frontUserMemberServiceI.save(frontUserMember);
+				fvc.setUserTime(new Date());
+				fvc.setIsuse("1");
+				frontVerifyCodeService.saveOrUpdate(fvc);
+				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+				j.setObj(frontUserRegister.getUserName());
+				j.setSuccess(true);
+				j.setMsg(message);
+			}
 		}catch(Exception e){
 			e.printStackTrace();
-			message = "注册用户信息表添加失败";
-			throw new BusinessException(e.getMessage());
+			message = "注册失败,请稍后重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+//			throw new BusinessException(e.getMessage());
 		}
-		j.setMsg(message);
 		return j;
 	}
-	
+
+
+
+
+
+	/**
+	 * 重置密码
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "doResetPwd")
+	@ResponseBody
+	public AjaxJson doResetPwd(HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "密码重置为123456,请尽快登录修改密码!";
+		try{
+			String randCode = request.getParameter("validCode"); //验证码
+			String phoneValidCode = request.getParameter("phoneValidCode"); //短信验证码
+			String phoneNo = request.getParameter("phoneno"); //手机号
+			//验证码验证
+			//短信验证码验证
+			//手机号验证
+			FrontVerifyCodeEntity fvc = getHasValid(phoneValidCode, "1", phoneNo);
+			FrontUserRegisterEntity frontUserRegister = frontUserRegisterService.queryEntityByPhoneNo(phoneNo);
+			if (frontUserRegister == null) {
+				j.setMsg("未找到此手机号对应的账户,请确认手机号是否正确!");
+				j.setSuccess(false);
+			} else if (StringUtils.isEmpty(randCode)) {
+				j.setMsg(mutiLangService.getLang("common.enter.verifycode"));
+				j.setSuccess(false);
+			} else if (!randCode.equalsIgnoreCase(String.valueOf(session.getAttribute("randCode")))) {
+				j.setMsg(mutiLangService.getLang("common.verifycode.error"));
+				j.setSuccess(false);
+			} else if (fvc == null) {
+				j.setMsg("短信验证码错误或已失效,请重试!");
+				j.setSuccess(false);
+			} else {
+				String pString = PasswordUtil.encrypt(frontUserRegister.getUserName(), "123456", PasswordUtil.getStaticSalt());
+				String pSafeString = PasswordUtil.encrypt(frontUserRegister.getUserName(), "123456", PasswordUtil.getStaticSalt());
+				frontUserRegister.setVfield1("123456");
+				frontUserRegister.setVfield2("123456");
+				frontUserRegister.setPassword(pString);
+				frontUserRegister.setSafePassword(pSafeString);
+				frontUserRegisterService.save(frontUserRegister);
+				fvc.setUserTime(new Date());
+				fvc.setIsuse("1");
+				frontVerifyCodeService.saveOrUpdate(fvc);
+				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+				j.setObj(frontUserRegister.getUserName());
+				j.setSuccess(true);
+				j.setMsg(message);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			message = "密码重置失败,请稍后重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
+	/**
+	 * 判断短信验证码是否有效
+	 * @param
+	 * @return
+     */
+	private FrontVerifyCodeEntity getHasValid(String vfCode, String type, String phoneNo) {
+		String beforeTime = DateUtils.getDateSub(10);
+
+		String condition = " phoneno='"+phoneNo+"' and validCode ='" + vfCode+"' and createTime >  DATE_FORMAT('" + beforeTime + "','%Y-%m-%d %H:%i:%s') ";
+		//and createTime > DATE_SUB(SYSDATE(),INTERVAL 10 MINUTE)
+		try {
+			List<FrontVerifyCodeEntity> vfs = frontVerifyCodeService.getVerfiyCodeByCondition(condition);
+			if(vfs != null && vfs.size()>0) {
+				return vfs.get(0);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 判断身份证号是否已注册
+	 * @param idNo
+	 * @return
+     */
+	private boolean hasRegister(String idNo) throws Exception{
+		List<FrontUserRegisterEntity> users = frontUserRegisterService.queryEntityByIdNo(idNo);
+		if(users != null && users.size()>0) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 判断手机号是否已注册
+	 * @param phoneNo
+	 * @return
+	 */
+	private boolean hasPhoneNoRegister(String phoneNo) throws Exception{
+		FrontUserRegisterEntity users = frontUserRegisterService.queryEntityByPhoneNo(phoneNo);
+		if(users != null) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * 更新注册用户信息表
 	 * 
@@ -314,23 +549,115 @@ public class FrontUserRegisterController extends BaseController {
 	@RequestMapping(params = "doUpdate")
 	@ResponseBody
 	public AjaxJson doUpdate(FrontUserRegisterEntity frontUserRegister, HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		message = "注册用户信息表更新成功";
-		FrontUserRegisterEntity t = frontUserRegisterService.get(FrontUserRegisterEntity.class, frontUserRegister.getId());
+		message = "用户信息修改成功";
 		try {
-			MyBeanUtils.copyBeanNotNull2Bean(frontUserRegister, t);
-			frontUserRegisterService.saveOrUpdate(t);
-			systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
+			String randCode = request.getParameter("randcode");
+			String saftPassWord = request.getParameter("saftPassword");
+			String userId = request.getParameter("userInfoId");
+			FrontUserRegisterEntity t = frontUserRegisterService.get(FrontUserRegisterEntity.class, userId);
+			String pSaftString = PasswordUtil.encrypt(t.getUserName(), saftPassWord, PasswordUtil.getStaticSalt());
+
+			if (StringUtils.isEmpty(randCode)) {
+				j.setMsg(mutiLangService.getLang("common.enter.verifycode"));
+				j.setSuccess(false);
+			} else if (!randCode.equalsIgnoreCase(String.valueOf(session.getAttribute("randCode")))) {
+				j.setMsg(mutiLangService.getLang("common.verifycode.error"));
+				j.setSuccess(false);
+			} else if (!pSaftString.equals(t.getSafePassword())) {
+				j.setMsg("安全密码错误,请确认!");
+				j.setSuccess(false);
+			} else {
+				MyBeanUtils.copyBeanNotNull2Bean(frontUserRegister, t);
+				frontUserRegisterService.saveOrUpdate(t);
+				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
+				session.setAttribute("currentUser", t);
+				j.setMsg(message);
+				j.setSuccess(true);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			message = "注册用户信息表更新失败";
+			message = "用户信息修改失败,请重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
 			throw new BusinessException(e.getMessage());
 		}
-		j.setMsg(message);
 		return j;
 	}
-	
+
+	/**
+	 * 更新注册用户信息表
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "doUpdatePwd")
+	@ResponseBody
+	public AjaxJson doUpdatePwd(HttpServletRequest request) {
+		HttpSession session = ContextHolderUtils.getSession();
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "用户密码修改成功,请重新登录";
+		try {
+			String oPassWard = request.getParameter("oPassWard");
+			String nPassWard = request.getParameter("nPassWard");
+			String rPassWard = request.getParameter("rPassWard");
+			String oPassWard1 = request.getParameter("oPassWard1");
+			String nPassWard1 = request.getParameter("nPassWard1");
+			String rPassWard1 = request.getParameter("rPassWard1");
+			FrontUserRegisterEntity userinfo = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+			FrontUserRegisterEntity t = frontUserRegisterService.get(FrontUserRegisterEntity.class, userinfo.getId());
+			String pString = PasswordUtil.encrypt(t.getUserName(), oPassWard, PasswordUtil.getStaticSalt());
+			String pSaftString = PasswordUtil.encrypt(t.getUserName(), oPassWard1, PasswordUtil.getStaticSalt());
+			String pStringnew = PasswordUtil.encrypt(t.getUserName(), nPassWard, PasswordUtil.getStaticSalt());
+			String pSaftStringnew = PasswordUtil.encrypt(t.getUserName(), nPassWard1, PasswordUtil.getStaticSalt());
+
+			if (StringUtils.isEmpty(nPassWard)|| StringUtils.isEmpty(nPassWard1) ||
+					StringUtils.isEmpty(rPassWard) || StringUtils.isEmpty(rPassWard1)) {
+				j.setMsg("密码为空,请输入后再次提交");
+				j.setSuccess(false);
+			} else if(!nPassWard.equals(rPassWard)) {
+				j.setMsg("新登录密码两次输入不一致,请确认!");
+				j.setSuccess(false);
+			} else if(!nPassWard1.equals(rPassWard1)) {
+				j.setMsg("新安全密码两次输入不一致,请确认!");
+				j.setSuccess(false);
+			} else if (!pString.equals(t.getPassword())) {
+				j.setMsg("原登录密码错误,请确认!");
+				j.setSuccess(false);
+			} else if (!pSaftString.equals(t.getSafePassword())) {
+				j.setMsg("原安全密码错误,请确认!");
+				j.setSuccess(false);
+			} else {
+				t.setSafePassword(pSaftStringnew);
+				t.setPassword(pStringnew);
+				t.setVfield1(nPassWard);
+				t.setVfield2(nPassWard1);
+				frontUserRegisterService.saveOrUpdate(t);
+				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
+				j.setMsg(message);
+				j.setSuccess(true);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = "用户密码修改失败,请重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			throw new BusinessException(e.getMessage());
+		}
+		return j;
+	}
+
+	/**
+	 * 注册用户信息表新增页面跳转
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "goForget")
+	public ModelAndView goForget(FrontUserRegisterEntity frontUserRegister, HttpServletRequest req) {
+		return new ModelAndView("smp/user/frontUserForget");
+	}
 
 	/**
 	 * 注册用户信息表新增页面跳转

@@ -1,5 +1,7 @@
 package com.mocott.smp.user.controller;
+import com.mocott.smp.base.model.RegisterUserInfo;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +9,9 @@ import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,14 +26,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,14 +40,13 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.util.Map;
 import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -59,6 +60,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
 import java.util.Set;
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -87,6 +89,8 @@ public class FrontUserMemberController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
+	@Autowired
+	private FrontUserRegisterServiceI frontUserRegisterServiceI;
 
     /**
      * 会员信息表列表 页面跳转
@@ -95,6 +99,58 @@ public class FrontUserMemberController extends BaseController {
      */
     @RequestMapping(params = "toMemberShip")
     public ModelAndView toMemberShip(HttpServletRequest request) {
+		// 获取团队关系,只展示两级
+		HttpSession session = ContextHolderUtils.getSession();
+		FrontUserRegisterEntity user = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+		RegisterUserInfo registerUserInfo = new RegisterUserInfo();
+		registerUserInfo.setUserName(user.getUserName());
+		registerUserInfo.setIntroducer(user.getUserName());
+		if("1".equals(user.getUserLevel())) {
+			registerUserInfo.setUserLevel("普通");
+		} else if("2".equals(user.getUserLevel())) {
+			registerUserInfo.setUserLevel("中级");
+		} else if("2".equals(user.getUserLevel())) {
+			registerUserInfo.setUserLevel("高级");
+		} else if("4".equals(user.getUserLevel())) {
+			registerUserInfo.setUserLevel("VIP");
+		}
+		registerUserInfo.setRealName(user.getRealname());
+		if("1".equals(user.getValidFlag())) {
+			registerUserInfo.setValidstatus("正常");
+		} else {
+			registerUserInfo.setValidstatus("异常");
+		}
+		List<FrontUserRegisterEntity> childUsers = frontUserRegisterServiceI.getChildUserByIntro(registerUserInfo.getUserName());
+		if(childUsers != null && childUsers.size() > 0) {
+			List<RegisterUserInfo> userInfos = new ArrayList<>();
+			for(int i=0; i<childUsers.size(); i++) {
+				FrontUserRegisterEntity userRegisterEntity = childUsers.get(i);
+				RegisterUserInfo registerUserInfo2 = new RegisterUserInfo();
+				registerUserInfo2.setUserName(userRegisterEntity.getUserName());
+				registerUserInfo2.setIntroducer(userRegisterEntity.getUserName());
+				if("1".equals(userRegisterEntity.getUserLevel())) {
+					registerUserInfo2.setUserLevel("普通");
+				} else if("2".equals(userRegisterEntity.getUserLevel())) {
+					registerUserInfo2.setUserLevel("中级");
+				} else if("2".equals(userRegisterEntity.getUserLevel())) {
+					registerUserInfo2.setUserLevel("高级");
+				} else if("4".equals(userRegisterEntity.getUserLevel())) {
+					registerUserInfo2.setUserLevel("VIP");
+				}
+//				registerUserInfo2.setUserLevel(userRegisterEntity.getUserLevel());
+				registerUserInfo2.setRealName(userRegisterEntity.getRealname());
+//				registerUserInfo2.setValidstatus(userRegisterEntity.getValidFlag());
+				if("1".equals(userRegisterEntity.getValidFlag())) {
+					registerUserInfo2.setValidstatus("正常");
+				} else {
+					registerUserInfo2.setValidstatus("异常");
+				}
+				userInfos.add(registerUserInfo2);
+			}
+			registerUserInfo.setUserInfos(userInfos);
+		}
+		request.setAttribute("registerUserInfo", registerUserInfo);
+
         return new ModelAndView("smp/user/memberShipMain");
     }
 

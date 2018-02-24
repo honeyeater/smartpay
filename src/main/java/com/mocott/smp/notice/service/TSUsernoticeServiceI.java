@@ -3,6 +3,7 @@ import com.mocott.smp.notice.entity.TSUsernoticeEntity;
 import org.jeecgframework.core.common.service.CommonService;
 
 import java.io.Serializable;
+import java.util.List;
 
 public interface TSUsernoticeServiceI extends CommonService{
 	
@@ -11,5 +12,6 @@ public interface TSUsernoticeServiceI extends CommonService{
  	public Serializable save(TSUsernoticeEntity entity) throws Exception;
  	
  	public void saveOrUpdate(TSUsernoticeEntity entity) throws Exception;
- 	
+
+	public List<TSUsernoticeEntity> queryAllNotice() throws Exception;
 }

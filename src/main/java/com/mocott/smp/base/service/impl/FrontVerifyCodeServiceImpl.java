@@ -1,10 +1,12 @@
 package com.mocott.smp.base.service.impl;
 import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -36,8 +38,37 @@ public class FrontVerifyCodeServiceImpl extends CommonServiceImpl implements Fro
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 根据查询条件查询验证码发送次数
+	 * @param condition
+	 * @return
+	 * @throws Exception
+     */
+	@Override
+	public List<FrontVerifyCodeEntity> getVerfiyCodeByCondition(String condition) throws Exception {
+		String query = " from FrontVerifyCodeEntity o where 1=1 and o.isuse = '0' and o.type = '1' and " + condition;
+		Query queryObject = getSession().createQuery(query);
+		List<FrontVerifyCodeEntity> verifys = queryObject.list();
+		return verifys;
+	}
+
+	/**
+	 * 根据查询条件查询验证码发送次数
+	 * @param condition
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<FrontVerifyCodeEntity> getVerfiyCodeByConditionType(String condition, String type) throws Exception {
+		String query = " from FrontVerifyCodeEntity o where 1=1 and o.isuse = '0' and o.type = '" + type +"' and " + condition;
+		Query queryObject = getSession().createQuery(query);
+		List<FrontVerifyCodeEntity> verifys = queryObject.list();
+		return verifys;
+	}
+
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

@@ -124,10 +124,16 @@
 						<value>userLoginController.do?changeDefaultOrg</value>
 						<value>userLoginController.do?checkuser</value>
 						<value>userLoginController.do?checkuser=</value>
+						<value>frontUserRegisterController.do?register</value>
+						<value>frontUserRegisterController.do?generateUN</value>
+						<value>frontUserRegisterController.do?doAdd</value>
+						<value>frontUserRegisterController.do?doResetPwd</value>
+						<value>frontUserRegisterController.do?goForget</value>
 						<value>repairController.do?repair</value>
 						<value>systemController.do?saveFiles</value>
 						<value>repairController.do?deleteAndRepair</value>
 						<value>userController.do?userOrgSelect</value>
+						<value>frontVerifyCodeController.do?verifyCode</value>
 						<!--移动图表-->
 						<value>cgDynamGraphController.do?design</value>
 						<value>cgDynamGraphController.do?datagrid</value>

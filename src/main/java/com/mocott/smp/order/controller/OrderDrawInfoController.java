@@ -1,13 +1,26 @@
 package com.mocott.smp.order.controller;
+import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
+import com.mocott.smp.base.entity.TSConfigcodeEntity;
+import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
+import com.mocott.smp.base.service.TSConfigcodeServiceI;
 import com.mocott.smp.order.entity.OrderDrawInfoEntity;
+import com.mocott.smp.order.entity.OrderInjectInfoEntity;
 import com.mocott.smp.order.service.OrderDrawInfoServiceI;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.order.service.OrderInjectInfoServiceI;
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
+import com.mocott.smp.util.MakeOrderNum;
+import com.mocott.smp.util.OrderConstant;
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,14 +35,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,14 +49,11 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,7 +66,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -87,7 +96,16 @@ public class OrderDrawInfoController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	
+	@Autowired
+	private FrontVerifyCodeServiceI frontVerifyCodeService;
+	@Autowired
+	private FrontUserRegisterServiceI frontUserRegisterServiceI;
+	@Autowired
+	private TSConfigcodeServiceI tSConfigcodeServiceI;
+	@Autowired
+	private FrontUserMemberServiceI frontUserMemberServiceI;
+	@Autowired
+	private OrderInjectInfoServiceI orderInjectInfoServiceI;
 
 
 	/**
@@ -100,13 +118,270 @@ public class OrderDrawInfoController extends BaseController {
 		return new ModelAndView("smp/order/drawListMain");
 	}
 
+
+	/**
+	 * 生成提出订单
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "generalOutOrder")
+	@ResponseBody
+	public AjaxJson generalOutOrder(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "提出资金订单添加成功";
+		double priceD = 0.0; //提取金额
+		double priceBXD = 0.0; //本息金额
+		double priceZTD = 0.0; //直推钱包
+		String smsCode = request.getParameter("smscode");
+		String safePwd = request.getParameter("threePwOut");
+		String userName = request.getParameter("inUserName");
+		String drawType = request.getParameter("drawType"); //提取类型
+		String price = request.getParameter("aaPrice"); //提取金额
+		String priceBX = request.getParameter("aabPrice"); //提取本息金额
+		String priceZT = request.getParameter("aabbPrice"); //提取直推金额
+
+		FrontUserRegisterEntity user = ResourceUtil.getSessionFrontUser();
+		if(StringUtil.isEmpty(userName)) {
+			userName = user.getUserName();
+		}
+		if(StringUtil.isNotEmpty(price)) {
+			priceD = Double.parseDouble(price);
+		}
+		if(StringUtil.isNotEmpty(priceBX)) {
+			priceBXD = Double.parseDouble(priceBX);
+		}
+		if(StringUtil.isNotEmpty(priceZT)) {
+			priceZTD = Double.parseDouble(priceZT);
+		}
+		try {
+			String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
+			FrontUserRegisterEntity userRegister = frontUserRegisterServiceI.queryEntityByUserName(userName);
+			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
+			String phoneNo = userRegister.getPhoneno();
+			FrontVerifyCodeEntity fvc = getHasValid(smsCode, "2", phoneNo);
+			double firstPayRatio = 100.00;
+			double baseTimes = 1.2;
+			//配置的提取基础比例
+			TSConfigcodeEntity tsConfigcodeEntity = tSConfigcodeServiceI.getConfigValue(OrderConstant.Sys_Base_UpTimes);
+			if (tsConfigcodeEntity != null) {
+				String firstPayRatioS = tsConfigcodeEntity.getConfigValue();
+				if (StringUtil.isNotEmpty(firstPayRatioS)) {
+					firstPayRatio = Double.parseDouble(firstPayRatioS);
+				}
+			}
+			if (userMember == null) {
+				message = "用户状态异常,请联系管理员!";
+				j.setMsg(message);
+				j.setSuccess(false);
+			} else if (StringUtil.isEmpty(smsCode)) {
+				j.setMsg("短信验证码为空,请确认!");
+				j.setSuccess(false);
+			} else if (fvc == null) {
+				j.setMsg("短信验证码错误或已失效,请稍后重试!");
+				j.setSuccess(false);
+			} else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
+				j.setMsg("安全密码错误,请确认!");
+				j.setSuccess(false);
+			} else if (priceD <= 0) {
+				j.setMsg("提取资金必须大于0,请确认!");
+				j.setSuccess(false);
+			} else if (!"1".equals(drawType) && !"2".equals(drawType) && !"3".equals(drawType) && !"4".equals(drawType)) {
+				j.setMsg("请勾选待提取钱包,请确认");
+				j.setSuccess(false);
+			} else if ((priceD % firstPayRatio) > 0 && "1".equals(drawType)) { //待返钱包
+				j.setMsg("提取金额必须是" + firstPayRatio + "的倍数,请确认!");
+				j.setSuccess(false);
+			} else if ((priceBXD % firstPayRatio) > 0 && (priceBXD % baseTimes) > 0 && "2".equals(drawType)) { //本息钱包
+				j.setMsg("提取本息金额必须是" + firstPayRatio + "和1.2的倍数,请确认!");
+				j.setSuccess(false);
+			} else if ((priceBXD % firstPayRatio) > 0 && (priceBXD % baseTimes) > 0 && "4".equals(drawType)) { //本息钱包
+				j.setMsg("提取本息金额必须是" + firstPayRatio + "和1.2的倍数,请确认!");
+				j.setSuccess(false);
+			} else if (userMember.getBackWallet() < priceD && "1".equals(drawType)) {
+				j.setMsg("待返钱包金额小于提取金额,请确认!");
+				j.setSuccess(false);
+			} else if ((userMember.getCouponWallet()+userMember.getIntroWallet()) < priceD && "2".equals(drawType)) {
+				j.setMsg("本息钱包金额小于提取金额,请确认!");
+				j.setSuccess(false);
+			} else if (userMember.getIntroWallet() < priceD && "3".equals(drawType)) {
+				j.setMsg("直推钱包金额小于提取金额,请确认!");
+				j.setSuccess(false);
+			} else if ((userMember.getIntroWallet() < priceZTD || userMember.getCouponWallet() < priceBXD) && "4".equals(drawType)) {
+				j.setMsg("直推与本息钱包金额小于提取金额,请确认!");
+				j.setSuccess(false);
+			} else{
+				//产生提出订单
+				MakeOrderNum orderNum = new MakeOrderNum();
+				OrderDrawInfoEntity orderDrawInfo = new OrderDrawInfoEntity();
+				orderDrawInfo.setUsername(userName);
+				orderDrawInfo.setOrderCode(orderNum.makeOrderNum("G"));
+				orderDrawInfo.setOrderMoney(priceD);
+				orderDrawInfo.setOrderStatus(OrderConstant.Order_Out_Init); //产生订单,等待初始化,等待处理
+				orderDrawInfo.setOrderTime(new Date());
+
+				orderDrawInfo.setDrawWallet(drawType); //提取钱包
+				orderDrawInfo.setDrawMoney(priceD);
+				orderDrawInfo.setDrawStartTime(new Date());
+				if ("4".equals(drawType)) { //直推钱包与本息钱包一起提取时
+					orderDrawInfo.setNfield1(priceZTD);
+				}
+				//更新钱包
+				userMember.setVfield1(drawType);//上次提取的金额
+				if ("1".equals(drawType)) { //待返钱包
+					userMember.setBackWallet(userMember.getBackWallet() - priceD);
+				} else if ("2".equals(drawType)) { //本息钱包
+//					userMember.setCouponWallet(userMember.getCouponWallet() - priceD);
+					userMember.setCouponWallet(userMember.getCouponWallet() - priceBXD);
+					userMember.setIntroWallet(userMember.getIntroWallet() - priceZTD);
+				} else if ("3".equals(drawType)) { //直推钱包
+					userMember.setIntroWallet(userMember.getIntroWallet() - priceD);
+				} else if ("4".equals(drawType)) { //本息和直推钱包
+					userMember.setCouponWallet(userMember.getCouponWallet() - priceBXD);
+					userMember.setIntroWallet(userMember.getIntroWallet() - priceZTD);
+				}
+				//更新短信验证
+				fvc.setIsuse("1");
+				fvc.setUserTime(new Date());
+
+				orderDrawInfoService.doSaveOutOrder(orderDrawInfo, userMember, fvc);
+				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+				j.setMsg(message);
+				j.setSuccess(true);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+			message = "提出资金订单添加失败,请稍后重试或联系管理员";
+			j.setMsg(message);
+			j.setSuccess(false);
+			throw new BusinessException(e.getMessage());
+		}
+
+		return j;
+	}
+
+	/**
+	 * 校验提取数据
+	 *
+	 * @return
+	 */
+	@RequestMapping(params = "checkDrawOrder")
+	@ResponseBody
+	public AjaxJson checkDrawOrder(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "提出资金订单校验成功";
+		try {
+			String drawType = request.getParameter("drawType");
+			FrontUserRegisterEntity user = ResourceUtil.getSessionFrontUser();
+			String userName = user.getUserName();
+			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
+			if(userMember == null) {
+				message = "用户状态异常,请联系管理员!";
+				j.setMsg(message);
+				j.setSuccess(false);
+			} else {
+				String canDraw = this.canDraw(userName, drawType, userMember);
+				j.setMsg(message);
+				j.setSuccess(true);
+				Map<String, Object> attr = new HashMap<>();
+				attr.put("canDraw", canDraw);
+				attr.put("userMem", userMember);
+				j.setAttributes(attr);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+			message = "提出资金订单校验失败,请稍后重试!";
+			j.setMsg(message);
+			j.setSuccess(false);
+			throw new BusinessException(e.getMessage());
+		}
+		return  j;
+	}
+
+
+	/**
+	 * 判断是否能够提取
+	 * @param userName
+	 * @param drawType
+	 * @param userMember
+     * @return
+     */
+	private String canDraw(String userName, String drawType, FrontUserMemberEntity userMember) throws Exception{
+		boolean hasCouponOrder = false;
+		boolean hasBackOrder = false;
+		boolean hasDoneBackOrder = false;
+		// 获取已经支付首付款\已支付尾款\保存期的未完成订单
+		List<OrderInjectInfoEntity> couponList = orderInjectInfoServiceI.getListByUndoneATCoupon(userName);
+		List<OrderInjectInfoEntity> backList = orderInjectInfoServiceI.getListByUndoneATBack(userName);
+		List<OrderInjectInfoEntity> backDoneList = orderInjectInfoServiceI.getListByDoneBack(userName);
+		if(couponList != null && couponList.size()>0) {
+			hasCouponOrder = true;
+		}
+		if(backList != null && backList.size()>0) {
+			hasBackOrder = true;
+		}
+		if(backDoneList != null && backDoneList.size()>0) {
+			hasDoneBackOrder = true;
+		}
+		String canDraw = "0";
+		System.out.println("-----"+drawType);
+		// 提取待返钱包
+		if("1".equals(drawType)) {
+			if(hasDoneBackOrder && hasCouponOrder && userMember.getBackWallet()>0 &&
+					(StringUtil.isEmpty(userMember.getVfield1()) || !"1".equals(userMember.getVfield1()))) {
+				canDraw = "1";
+			}
+		}
+		// 提取本息钱包
+		if("2".equals(drawType)) {
+			if(hasBackOrder && userMember.getCouponWallet()>0 && !"2".equals(userMember.getVfield1()) && "1".equals(userMember.getVfield1())) {
+				canDraw = "1";
+			}
+		}
+		// 提取直推钱包
+		if("3".equals(drawType)) {
+			if(hasBackOrder && userMember.getIntroWallet()>0) {
+				canDraw = "1";
+			}
+		}
+		// 提取本息和直推钱包
+		if("4".equals(drawType)) {
+			if(hasBackOrder) {
+				canDraw = "1";
+			}
+		}
+		return canDraw;
+	}
+
+	/**
+	 * 判断短信验证码是否有效
+	 * @param
+	 * @return
+	 */
+	private FrontVerifyCodeEntity getHasValid(String vfCode, String type, String phoneNo) {
+		String beforeTime = DateUtils.getDateSub(10);
+
+		String condition = " phoneno='"+phoneNo+"' and validCode ='" + vfCode+"' and createTime >  DATE_FORMAT('" + beforeTime + "','%Y-%m-%d %H:%i:%s') ";
+		//and createTime > DATE_SUB(SYSDATE(),INTERVAL 10 MINUTE)
+		try {
+			List<FrontVerifyCodeEntity> vfs = frontVerifyCodeService.getVerfiyCodeByConditionType(condition, type);
+			if(vfs != null && vfs.size()>0) {
+				return vfs.get(0);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+
 	/**
 	 * easyui AJAX请求数据
 	 * 
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
 
 	@RequestMapping(params = "datagrid")
@@ -180,7 +455,6 @@ public class OrderDrawInfoController extends BaseController {
 	/**
 	 * 添加提出资金订单表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
@@ -204,7 +478,6 @@ public class OrderDrawInfoController extends BaseController {
 	/**
 	 * 更新提出资金订单表
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")

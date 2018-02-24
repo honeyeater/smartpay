@@ -16,16 +16,16 @@
                         <!--  5、提交申诉材料请发送邮件至公司相关负责人邮箱 <font color="blue">***@***.com</font>（请牢记此官方处理申诉事务唯一邮箱）-->
                     </p>
                     <hr><hr><hr><br>
-                    <form action="https://www.vipzftaab.com/index/doSendMsg/" method="post">
+                    <form method="post" id="feedbackFrom">
                         <div class="input-group">
                             <span class="input-group-addon" id="basic-addon1" style="width:85px">留言类型</span>
-                            <select class="form-control" aria-describedby="basic-addon1" style="width: 120px" id="msgType" name="msgType">
-                                <option value="咨询">咨询</option>
-                                <option value="建议/意见">建议/意见</option>
-                                <option value="投诉/举报">投诉/举报</option>
-                                <option value="账号被盜">账号被盜</option>
-                                <option value="奖金问题">奖金问题</option>
-                                <option value="其它">其它</option>
+                            <select class="form-control" aria-describedby="basic-addon1" style="width: 120px" id="feedtype" name="feedtype">
+                                <option value="01">咨询</option>
+                                <option value="02">建议/意见</option>
+                                <option value="03">投诉/举报</option>
+                                <option value="04">账号被盜</option>
+                                <option value="05">奖金问题</option>
+                                <option value="06">其它</option>
                             </select>
                         </div>
                         <br>
@@ -38,44 +38,76 @@
                         <br>
                         <textarea class="form-control" rows="3" placeholder="内容" id="content" name="content" required=""></textarea>
                         <br>
-                        <script type="text/javascript" src="https://www.vipzftaab.com//js/jquery.js"></script>
-                        <script type="text/javascript" src="https://www.vipzftaab.com//js/ajaxfileupload.js"></script>
-                        <script>
-                            var hehe;
+                        <script type="text/javascript" src="plug-in/webfront/js/ajaxfileupload.js"></script>
+                        <script type="text/javascript">
                             function picUp(){
                                 if($("#img_1").val()=='')return;
                                 $.ajaxFileUpload({
-                                    url: 'https://www.vipzftaab.com/public/upload/',
+                                    type: "post",
+                                    url: 'tSFeedattachController.do?fileUpload',
                                     secureuri: false, //一般设置为false
-                                    fileElementId: 'img_1', //
-                                    dataType: 'text',
+                                    fileElementId: 'img_1', //图片地址
+                                    dataType: 'json',
                                     success: function(data){
-
-                                        hehe = JSON.parse(data);
-                                        if(hehe.data[0]!=''){
-                                            $("#img_1_d").val( $("#img_1_d").val()+hehe.data[0]+';');
-                                            $("#imgHolder").html($("#imgHolder").html()+'<img src="'+hehe.data[0]+'" style="max-width: 100px;float: left">');
-                                            $("body").height($("#mainHolder").height()+68);
+                                        var d = $.parseJSON(data);
+                                        if(d.success){
+                                            $("#img_1_d").val( $("#img_1_d").val()+ d.obj+';');
+                                            $("#imgHolder").html($("#imgHolder").html()+'<img src="'+ d.obj+'" style="max-width: 100px;float: left">');
+//                                            $("body").height($("#mainHolder").height()+68);
                                         }else{
-                                            __Alert(hehe.data[1]);
+                                            layer.alert('上传失败,请重试!',{
+                                                offset: '240px'});
                                         }
 
                                     },
                                     error: function(data, status, e){
-                                        alert('上传失败');
-                                        $("#imgShow").hide();
-
+                                        layer.alert('上传失败,请重试!',{
+                                            offset: '240px'});
                                     }
                                 });
                             }
+                            function validateCallback(form, callback, confirmMsg) {
+                                var $form = $(form);
+                                // 提交信息
+                                var url="tSFeedbackController.do?doAdd";
+                                var fromData = $('#feedbackFrom').serialize();
+                                $.ajax({
+                                    cache: false,
+                                    async : false,
+                                    type : 'POST',
+                                    url : url,// 请求的action路径
+                                    data : fromData,
+                                    error : function() {// 请求失败处理函数
+                                        alert("服务器异常,请稍后重试!");
+                                    },
+                                    success : function(data) {
+                                        var d = $.parseJSON(data);
+                                        if (d.success) {
+                                            layer.alert(
+                                                d.msg,
+                                                {   offset: '240px',
+                                                    closeBtn: 0
+                                                },
+                                                function(){
+                                                    location.href="tSFeedbackController.do?toFeedback";
+                                                }
+                                            );
+                                        } else {
+                                            alert("系统异常,请稍后重试!");
+                                        }
+                                    }
+                                });
+                                return false;
+                            }
+
                         </script>
                         <div style="clear: both"></div>
                         <div id="imgHolder"></div>
                         <div style="clear: both"></div>
                         <input id="img_1" name="img_1" type="file" style="display:none" onchange="picUp()">
-                        <input id="img_1_d" name="img_1_d" type="hidden" style="display:none">
+                        <input id="img_1_d" name="img_1_d" type="" style="display:none">
                         <div style="width:100%;text-align: center">
-                            <button type="submit" class="btn btn-primary">提交</button>
+                            <button type="submit" class="btn btn-primary" onclick="return validateCallback();">提交</button>
                             <button type="button" class="btn btn-primary" onclick="$('#img_1').click()">上传证据图片</button>
                         </div>
                     </form>
@@ -87,6 +119,5 @@
         <div class="col-sm-1"></div>
     </div>
 </div>
-
 
 
