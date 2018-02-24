@@ -3,6 +3,8 @@ import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
 import com.mocott.smp.base.entity.TSConfigcodeEntity;
 import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
 import com.mocott.smp.base.service.TSConfigcodeServiceI;
+import com.mocott.smp.log.entity.LogTradeInfoEntity;
+import com.mocott.smp.log.service.LogTradeInfoServiceI;
 import com.mocott.smp.order.entity.OrderDrawInfoEntity;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
 import com.mocott.smp.order.service.OrderDrawInfoServiceI;
@@ -106,6 +108,8 @@ public class OrderDrawInfoController extends BaseController {
 	private FrontUserMemberServiceI frontUserMemberServiceI;
 	@Autowired
 	private OrderInjectInfoServiceI orderInjectInfoServiceI;
+	@Autowired
+    private LogTradeInfoServiceI logTradeInfoServiceI;
 
 
 	/**
@@ -243,6 +247,51 @@ public class OrderDrawInfoController extends BaseController {
 				//更新短信验证
 				fvc.setIsuse("1");
 				fvc.setUserTime(new Date());
+
+                // 生成财务交易信息
+                LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
+                logTradeInfo.setUsername(userName);
+                logTradeInfo.setSerialno("1");
+                logTradeInfo.setOrderCode(orderDrawInfo.getOrderCode());
+                logTradeInfo.setStaticMoney(0.00); //注入支付金额
+                logTradeInfo.setDynMoney(0.00); // 利息金额
+                logTradeInfo.setBackMoney(0.00);  // 提出金额
+                logTradeInfo.setReleaseMoney(0.00); // 直推金额
+                logTradeInfo.setTradeTime(new Date());
+                if("1".equals(drawType)) {
+                    logTradeInfo.setNfield1(priceD); // 提出金额
+                    logTradeInfo.setReason("1-提取待返钱包");
+                } else {
+                    logTradeInfo.setNfield1(priceBXD); // 提出金额
+                    logTradeInfo.setReason("2-提取本息钱包");
+                }
+                logTradeInfo.setRemark("");
+                logTradeInfo.setInputtime(new Date());
+                logTradeInfo.setInserttimeforhis(new Date());
+                logTradeInfo.setOperatetimeforhis(new Date());
+                logTradeInfoServiceI.save(logTradeInfo);
+                if("2".equals(drawType) && priceZTD>0) { //直推钱包
+                    LogTradeInfoEntity logTradeInfo2 = new LogTradeInfoEntity();
+                    logTradeInfo2.setUsername(userName);
+                    logTradeInfo2.setSerialno("1");
+                    logTradeInfo2.setOrderCode(orderDrawInfo.getOrderCode());
+                    logTradeInfo2.setStaticMoney(0.00); //注入支付金额
+                    logTradeInfo2.setDynMoney(0.00); // 利息金额
+                    logTradeInfo2.setBackMoney(0.00);  // 返到钱包金额
+                    logTradeInfo2.setReleaseMoney(0.00); // 直推金额
+                    logTradeInfo2.setTradeTime(new Date());
+                    logTradeInfo2.setNfield1(priceZTD);
+                    if("1".equals(drawType)) {
+                        logTradeInfo2.setReason("1-提取待返钱包");
+                    } else {
+                        logTradeInfo2.setReason("2-提取直推钱包");
+                    }
+                    logTradeInfo2.setRemark("");
+                    logTradeInfo2.setInputtime(new Date());
+                    logTradeInfo2.setInserttimeforhis(new Date());
+                    logTradeInfo2.setOperatetimeforhis(new Date());
+                    logTradeInfoServiceI.save(logTradeInfo2);
+                }
 
 				orderDrawInfoService.doSaveOutOrder(orderDrawInfo, userMember, fvc);
 				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);

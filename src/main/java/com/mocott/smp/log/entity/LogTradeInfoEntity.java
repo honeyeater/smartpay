@@ -56,9 +56,9 @@ public class LogTradeInfoEntity implements java.io.Serializable {
 	/**释放钱包*/
     @Excel(name="释放钱包",width=15)
 	private java.lang.Double releaseMoney;
-	/**时间*/
-    @Excel(name="时间",width=15)
-	private java.lang.Double tradeTime;
+	/**交易日期*/
+    @Excel(name="交易日期",width=15,format = "yyyy-MM-dd")
+	private java.util.Date tradeTime;
 	/**备注*/
     @Excel(name="备注",width=15)
 	private java.lang.String remark;
@@ -269,7 +269,7 @@ public class LogTradeInfoEntity implements java.io.Serializable {
 	 *@return: java.lang.Double  时间
 	 */
 	@Column(name ="TRADE_TIME",nullable=true,length=22)
-	public java.lang.Double getTradeTime(){
+	public java.util.Date getTradeTime(){
 		return this.tradeTime;
 	}
 
@@ -277,7 +277,7 @@ public class LogTradeInfoEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.Double
 	 *@param: java.lang.Double  时间
 	 */
-	public void setTradeTime(java.lang.Double tradeTime){
+	public void setTradeTime(java.util.Date tradeTime){
 		this.tradeTime = tradeTime;
 	}
 	/**

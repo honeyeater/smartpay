@@ -2,6 +2,8 @@ package com.mocott.smp.order.controller;
 import com.mocott.smp.base.entity.TSConfigcodeEntity;
 import com.mocott.smp.base.service.TSConfigcodeServiceI;
 import com.mocott.smp.base.service.TSIndexServiceI;
+import com.mocott.smp.log.entity.LogTradeInfoEntity;
+import com.mocott.smp.log.service.LogTradeInfoServiceI;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
 import com.mocott.smp.order.service.OrderInjectInfoServiceI;
 
@@ -105,6 +107,8 @@ public class OrderInjectInfoController extends BaseController {
 	private TSIndexServiceI tsIndexServiceI;
 	@Autowired
 	private FrontUserMemberServiceI frontUserMemberServiceI;
+	@Autowired
+    private LogTradeInfoServiceI logTradeInfoServiceI;
 
     /**
      * 财务明细列表 页面跳转
@@ -113,6 +117,16 @@ public class OrderInjectInfoController extends BaseController {
      */
     @RequestMapping(params = "tofinancelist")
     public ModelAndView tofinancelist(HttpServletRequest request) {
+        HttpSession session = ContextHolderUtils.getSession();
+        FrontUserRegisterEntity user = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+        String userName = user.getUserName();
+        if(StringUtil.isNotEmpty(userName)) {
+          String bDate = request.getParameter("bTimeDate");
+          String eDate = request.getParameter("eTimeDate");
+          List<LogTradeInfoEntity> logTradeInfos = logTradeInfoServiceI.getTradesByUserName(userName, bDate, eDate);
+          request.setAttribute("logTradeInfos", logTradeInfos);
+        }
+
         return new ModelAndView("smp/order/tradeDetailMain");
     }
 
@@ -635,6 +649,27 @@ public class OrderInjectInfoController extends BaseController {
 						orderInject.setFirstPayTime(new Date());
 						orderInject.setOrderStatus(OrderConstant.Order_Final_Pay);
 						orderInjectInfoService.save(orderInject); //保存
+                        // 生成财务交易信息
+                        LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
+                        logTradeInfo.setUsername(userName);
+                        logTradeInfo.setSerialno("1");
+                        logTradeInfo.setOrderCode(orderInject.getOrderCode());
+                        logTradeInfo.setStaticMoney(orderInject.getFirstPay()); //注入支付金额
+                        logTradeInfo.setDynMoney(0.00); // 利息金额
+                        logTradeInfo.setBackMoney(0.00);  // 提出金额
+                        logTradeInfo.setReleaseMoney(0.00); // 直推金额
+                        logTradeInfo.setTradeTime(new Date());
+                        if("1".equals(orderInject.getVfield1())) {
+                            logTradeInfo.setReason("1-首付款支付");
+                        } else {
+                            logTradeInfo.setReason("2-首付款支付");
+                        }
+                        logTradeInfo.setRemark("");
+                        logTradeInfo.setInputtime(new Date());
+                        logTradeInfo.setInserttimeforhis(new Date());
+                        logTradeInfo.setOperatetimeforhis(new Date());
+                        logTradeInfoServiceI.save(logTradeInfo);
+
 						j.setMsg(message);
 						j.setObj(orderInject.getFirstPay());
 						j.setSuccess(true);
@@ -647,6 +682,27 @@ public class OrderInjectInfoController extends BaseController {
 					} else {
 						orderInject.setEndPayTime(new Date());
 						orderInject.setOrderStatus(OrderConstant.Order_Confirm_Period);
+
+                        // 生成财务交易信息
+                        LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
+                        logTradeInfo.setUsername(userName);
+                        logTradeInfo.setSerialno("1");
+                        logTradeInfo.setOrderCode(orderInject.getOrderCode());
+                        logTradeInfo.setStaticMoney(orderInject.getEndPay()); //注入支付金额
+                        logTradeInfo.setDynMoney(0.00); // 利息金额
+                        logTradeInfo.setBackMoney(0.00);  // 提出金额
+                        logTradeInfo.setReleaseMoney(0.00); // 直推金额
+                        logTradeInfo.setTradeTime(new Date());
+                        if("1".equals(orderInject.getVfield1())) {
+                            logTradeInfo.setReason("1-尾款支付");
+                        } else {
+                            logTradeInfo.setReason("2-尾款支付");
+                        }
+                        logTradeInfo.setRemark("");
+                        logTradeInfo.setInputtime(new Date());
+                        logTradeInfo.setInserttimeforhis(new Date());
+                        logTradeInfo.setOperatetimeforhis(new Date());
+                        logTradeInfoServiceI.save(logTradeInfo);
 
 						if(userMemberParent != null) {
 							String userLevel = userMemberParent.getUserLevel();
@@ -665,6 +721,27 @@ public class OrderInjectInfoController extends BaseController {
 							}
 							userMemberParent.setIntroWallet(userMemberParent.getIntroWallet() + (tiquRate * orderInject.getOrderMoney()/100));
 							frontUserMemberServiceI.saveOrUpdate(userMemberParent);
+
+                            // 生成财务交易信息
+                            LogTradeInfoEntity logTradeInfo2 = new LogTradeInfoEntity();
+                            logTradeInfo2.setUsername(userMemberParent.getUsername());
+                            logTradeInfo2.setSerialno("1");
+                            logTradeInfo2.setOrderCode(orderInject.getOrderCode());
+                            logTradeInfo2.setStaticMoney(0.00); //注入支付金额
+                            logTradeInfo2.setDynMoney(0.00); // 利息金额
+                            logTradeInfo2.setBackMoney(0.00);  // 提出金额
+                            logTradeInfo2.setReleaseMoney(tiquRate * orderInject.getOrderMoney()/100); // 直推金额
+                            logTradeInfo2.setTradeTime(new Date());
+                            if("1".equals(orderInject.getVfield1())) {
+                                logTradeInfo2.setReason("1-直推提奖金额");
+                            } else {
+                                logTradeInfo2.setReason("2-直推提奖金额");
+                            }
+                            logTradeInfo2.setRemark("");
+                            logTradeInfo2.setInputtime(new Date());
+                            logTradeInfo2.setInserttimeforhis(new Date());
+                            logTradeInfo2.setOperatetimeforhis(new Date());
+                            logTradeInfoServiceI.save(logTradeInfo2);
 						}
 
 						orderInjectInfoService.save(orderInject); //保存

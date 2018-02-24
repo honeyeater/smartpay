@@ -1,10 +1,12 @@
 package com.mocott.smp.log.service.impl;
 import com.mocott.smp.log.service.LogTradeInfoServiceI;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.log.entity.LogTradeInfoEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -36,8 +38,23 @@ public class LogTradeInfoServiceImpl extends CommonServiceImpl implements LogTra
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+    @Override
+    public List<LogTradeInfoEntity> getTradesByUserName(String userName, String bDate, String eDate) {
+ 	    String query = " from LogTradeInfoEntity l where l.username =:userName";
+ 	    if(StringUtil.isNotEmpty(bDate)) {
+ 	        query = query +  " and l.tradeTime >= DATE_FORMAT('" + bDate + "','%Y-%m-%d %H:%i:%s')";
+        }
+        if(StringUtil.isNotEmpty(eDate)) {
+            query = query + " and l.tradeTime <= DATE_FORMAT('" + eDate + "','%Y-%m-%d %H:%i:%s')";
+        }
+
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("userName", userName);
+        return queryObject.list();
+    }
+
+    /**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return
