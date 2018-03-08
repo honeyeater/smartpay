@@ -2,10 +2,13 @@ package com.mocott.smp.trade.service.impl;
 
 import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
 import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -37,6 +40,23 @@ public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUs
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
+
+    /**
+     * 根据用户名获取USDT账户信息
+     * @param username
+     * @return
+     * @throws Exception
+     */
+    public UserUsdtInfoEntity queryUserUsdtByUserName(String username) throws Exception {
+ 	    String query = " from UserUsdtInfoEntity u where u.username =:username";
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("username", username);
+        List<UserUsdtInfoEntity> userUsdtInfos = queryObject.list();
+        if(userUsdtInfos != null && userUsdtInfos.size()>0) {
+            return userUsdtInfos.get(0);
+        }
+        return null;
+    }
  	
  	/**
 	 * 新增操作增强业务

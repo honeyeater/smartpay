@@ -56,6 +56,9 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	/**费用*/
 	@Excel(name="费用",width=15)
 	private Double fee;
+    /**费用*/
+    @Excel(name="总金额",width=15)
+    private Double sumAmount;
 	/**交易类型*/
 	@Excel(name="交易类型",width=15)
 	private String tradeType;
@@ -613,4 +616,13 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	public void setDfield4(java.util.Date dfield4){
 		this.dfield4 = dfield4;
 	}
+
+
+    public Double getSumAmount() {
+        return sumAmount;
+    }
+
+    public void setSumAmount(Double sumAmount) {
+        this.sumAmount = sumAmount;
+    }
 }

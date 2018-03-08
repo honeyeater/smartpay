@@ -1,70 +1,48 @@
 package com.mocott.smp.trade.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.text.SimpleDateFormat;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.mocott.smp.trade.entity.UsdtTradeEntity;
+import com.mocott.smp.trade.model.UsdtTradeInfo;
 import com.mocott.smp.trade.service.UsdtTradeServiceI;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-
+import org.jeecgframework.core.beanvalidator.BeanValidators;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.exception.BusinessException;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
-import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
-import org.jeecgframework.tag.core.easyui.TagUtil;
-import org.jeecgframework.web.system.pojo.base.TSDepart;
-import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
-
-import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
-import org.jeecgframework.poi.excel.ExcelExportUtil;
+import org.jeecgframework.core.util.*;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
 import org.jeecgframework.poi.excel.entity.ImportParams;
-import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
-import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
-import java.io.IOException;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.web.system.service.SystemService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import java.io.IOException;
 import java.net.URI;
-import org.springframework.http.MediaType;
-import org.springframework.web.util.UriComponentsBuilder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**   
  * @Title: Controller  
@@ -88,7 +66,8 @@ public class UsdtTradeController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-
+    @Autowired
+    private FrontUserRegisterServiceI frontUserRegisterService;
 
 	/**
 	 * USDT交易 页面跳转
@@ -101,6 +80,112 @@ public class UsdtTradeController extends BaseController {
 	}
 
 
+    /**
+     * 买入usdt
+     *
+     * @return
+     */
+    @RequestMapping(params = "doBuy")
+    @ResponseBody
+    public AjaxJson doBuy(UsdtTradeInfo usdtTradeInfo, HttpServletRequest request) {
+        String message = null;
+        AjaxJson j = new AjaxJson();
+        message = "USDT买入成功";
+        try{
+            String safePwd = request.getParameter("buysafepwd"); //安全密码
+            String buyprice = request.getParameter("buyprice"); //买入价格
+            String buynum = request.getParameter("buynum"); //买入数量
+            String buyfee = request.getParameter("buyfee"); //买入费用
+            String buyfeerate = request.getParameter("buyfeerate"); //买入费用比例
+            String buysumamount = request.getParameter("buysumamount"); //买入总金额
+            String buyalipay = request.getParameter("buyalipay"); //买入支付宝账号
+            String buybankcard = request.getParameter("buybankcard"); //买入银行卡账户
+
+            FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+            String userName = frontUser.getUserName();
+            String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
+            FrontUserRegisterEntity userRegister = frontUserRegisterService.queryEntityByUserName(userName);
+            // 买入校验
+            if(StringUtil.isEmpty(safePwd)) {
+                message = "安全密码为空，请确认!";
+                j.setSuccess(false);
+            } else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
+                j.setMsg("您输入的安全密码错误,请确认!");
+                j.setSuccess(false);
+            } else if(StringUtil.isNotEmpty(buynum) && Double.parseDouble(buynum)<= 0) {
+                message = "买入数量为空或为零，请确认!";
+                j.setSuccess(false);
+            } else if(StringUtil.isNotEmpty(buyprice)) {
+                message = "买入价格为空，请确认!";
+                j.setSuccess(false);
+            } else{
+                usdtTradeService.saveBuy(usdtTradeInfo);
+                j.setSuccess(true);
+            }
+
+            systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
+        }catch(Exception e){
+            e.printStackTrace();
+            message = "USDT买入成功";
+            j.setSuccess(false);
+            throw new BusinessException(e.getMessage());
+        }
+        j.setMsg(message);
+        return j;
+    }
+
+    /**
+     * 卖出usdt
+     *
+     * @return
+     */
+    @RequestMapping(params = "doSale")
+    @ResponseBody
+    public AjaxJson doSale(UsdtTradeInfo usdtTradeInfo, HttpServletRequest request) {
+        String message = null;
+        AjaxJson j = new AjaxJson();
+        message = "USDT卖出申请成功，请等待处理";
+        try{
+            String safePwd = request.getParameter("salesafepwd"); //安全密码
+            String saleprice = request.getParameter("saleprice"); //卖出价格
+            String salenum = request.getParameter("salenum"); //卖出数量
+            String salefee = request.getParameter("salefee"); //卖出费用
+            String salefeerate = request.getParameter("salefeerate"); //卖出费用比例
+            String salesumamount = request.getParameter("salesumamount"); //卖出总金额
+            String saledrawurl = request.getParameter(""); //提出地址
+
+            FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+            String userName = frontUser.getUserName();
+            String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
+            FrontUserRegisterEntity userRegister = frontUserRegisterService.queryEntityByUserName(userName);
+            // 买入校验
+            if(StringUtil.isEmpty(safePwd)) {
+                message = "安全密码为空，请确认!";
+                j.setSuccess(false);
+            } else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
+                j.setMsg("您输入的安全密码错误,请确认!");
+                j.setSuccess(false);
+            } else if(StringUtil.isNotEmpty(salenum) && Double.parseDouble(salenum)<= 0) {
+                message = "买入数量为空或为零，请确认!";
+                j.setSuccess(false);
+            } else if(StringUtil.isNotEmpty(saleprice)) {
+                message = "买入价格为空，请确认!";
+                j.setSuccess(false);
+            } else{
+                usdtTradeService.saveBuy(usdtTradeInfo);
+                j.setSuccess(true);
+            }
+
+            systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
+        }catch(Exception e){
+            e.printStackTrace();
+            message = "USDT卖出申请失败，请稍后重试或联系客服!";
+            j.setSuccess(false);
+            throw new BusinessException(e.getMessage());
+        }
+        j.setMsg(message);
+        return j;
+    }
 
 	/**
 	 * USDT交易信息列表 页面跳转
@@ -118,9 +203,7 @@ public class UsdtTradeController extends BaseController {
 	 * @param request
 	 * @param response
 	 * @param dataGrid
-	 * @param user
 	 */
-
 	@RequestMapping(params = "datagrid")
 	public void datagrid(UsdtTradeEntity usdtTrade, HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		CriteriaQuery cq = new CriteriaQuery(UsdtTradeEntity.class, dataGrid);
@@ -188,11 +271,9 @@ public class UsdtTradeController extends BaseController {
 		return j;
 	}
 
-
 	/**
 	 * 添加USDT交易信息
 	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
@@ -215,8 +296,6 @@ public class UsdtTradeController extends BaseController {
 	
 	/**
 	 * 更新USDT交易信息
-	 * 
-	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")

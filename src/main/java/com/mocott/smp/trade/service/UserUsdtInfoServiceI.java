@@ -12,5 +12,6 @@ public interface UserUsdtInfoServiceI extends CommonService{
  	public Serializable save(UserUsdtInfoEntity entity) throws Exception;
  	
  	public void saveOrUpdate(UserUsdtInfoEntity entity) throws Exception;
- 	
+
+    public UserUsdtInfoEntity queryUserUsdtByUserName(String username) throws Exception;
 }
