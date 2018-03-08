@@ -38,7 +38,6 @@ public interface OrderInjectInfoServiceI extends CommonService{
 
 	public List<OrderInjectInfoEntity> getListByOrderCode(String orderCode, String userName) throws Exception;
 
-	public void doSaveInWallet(OrderInjectInfoEntity injectInfoEntity, FrontUserMemberEntity userMember ) throws Exception;
-
 	public void changeOrderStauts() throws Exception;
+
 }

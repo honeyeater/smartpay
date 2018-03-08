@@ -32,6 +32,7 @@
                             <li><a href="frontUserActivatecodeController.do?activatecode">激活码管理</a></li>
                         </ul>
                     </li>
+                    <li><a href="usdtTradeController.do?toTrade">交易中心</a></li>
                     <li>
                         <a href="#" class="dropdown" data-toggle="dropdown" aria-labelledby=""
                            role="button" aria-expanded="true" aria-haspopup="true">财务管理</a>
