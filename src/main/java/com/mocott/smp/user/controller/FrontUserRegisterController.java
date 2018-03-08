@@ -381,6 +381,7 @@ public class FrontUserRegisterController extends BaseController {
 				frontUserMember.setInputtime(now);
 				frontUserMember.setInserttimeforhis(now);
 				frontUserMember.setOperatetimeforhis(now);
+				frontUserMember.setNfield1(0.00); //第一次注入金额
 
 				List<FrontUserRegisterEntity> parentUsers = frontUserRegisterService.queryParentEntity(frontUserRegister.getIntroducer());
 				if(parentUsers != null && parentUsers.size()>0) {

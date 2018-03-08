@@ -43,6 +43,8 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
  		return t;
  	}
 
+
+
 	/**
 	 * 批量定时任务更新订单的状态
 	 */
@@ -66,90 +68,6 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 
 	}
 
-	@Override
-	public void doSaveInWallet(OrderInjectInfoEntity orderInject, FrontUserMemberEntity userMember) throws Exception {
-		String orderType = orderInject.getVfield1();
-		if("1".equals(orderType)) {
-			orderInject.setDfield1(new Date()); //设置提现时间
-			orderInject.setOrderStatus(OrderConstant.Order_Done);
-			// 计算首付款时间与周期结束时间 + 保存期时间
-			int diff = DateUtils.dateDiffForDate('d', orderInject.getWaitEndTime(), orderInject.getFirstPayTime()) +
-					(Integer.parseInt(orderInject.getSaveInternal())/24);
-			orderInject.setInterestReal(orderInject.getRestRate() * orderInject.getOrderMoney() * diff /100);
-			this.saveOrUpdate(orderInject); //保存
-			//提取到订单金额待返钱包中
-			userMember.setBackWallet(orderInject.getOrderMoney());
-			//提取到利息到本息钱包中
-			userMember.setCouponWallet((orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal())+
-					(userMember.getCouponWallet()==null?0.00:userMember.getCouponWallet()));
-
-			userMember.setSumAmount(userMember.getSumAmount() + orderInject.getOrderMoney() + orderInject.getInterestReal());
-
-			frontUserMemberServiceI.saveOrUpdate(userMember);
-            
-		}
-		if("2".equals(orderType)) {
-			orderInject.setDfield1(new Date()); //设置提现时间
-			orderInject.setOrderStatus(OrderConstant.Order_Done);
-			// 计算首付款时间与周期结束时间 + 保存期时间
-			int diff = DateUtils.dateDiffForDate('d', orderInject.getWaitEndTime(), orderInject.getFirstPayTime()) +
-					(Integer.parseInt(orderInject.getSaveInternal())/24);
-			orderInject.setInterestReal(orderInject.getRestRate() * orderInject.getOrderMoney() * diff/100); //计算利息
-			this.saveOrUpdate(orderInject); //保存
-			//提取到订单金额\利息到本息钱包中
-			userMember.setCouponWallet(orderInject.getOrderMoney()+
-					(orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal())+
-					(userMember.getCouponWallet()==null?0.00:userMember.getCouponWallet()));
-
-			userMember.setSumAmount(userMember.getSumAmount()+orderInject.getOrderMoney()+
-							(orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal()));
-
-			frontUserMemberServiceI.saveOrUpdate(userMember);
-		}
-
-        // 生成财务交易信息
-        LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
-        logTradeInfo.setUsername(userMember.getUsername());
-        logTradeInfo.setSerialno("1");
-        logTradeInfo.setOrderCode(orderInject.getOrderCode());
-        logTradeInfo.setStaticMoney(0.00); //注入支付金额
-        logTradeInfo.setDynMoney(0.00); // 利息金额
-        logTradeInfo.setBackMoney(orderInject.getOrderMoney());  // 返还到钱包金额
-        logTradeInfo.setReleaseMoney(0.00); // 直推金额
-        logTradeInfo.setTradeTime(new Date());
-        if("1".equals(orderInject.getVfield1())) {
-            logTradeInfo.setReason("1-金额到待返钱包");
-        } else {
-            logTradeInfo.setReason("2-金额到本息钱包");
-        }
-        logTradeInfo.setRemark("");
-        logTradeInfo.setInputtime(new Date());
-        logTradeInfo.setInserttimeforhis(new Date());
-        logTradeInfo.setOperatetimeforhis(new Date());
-        logTradeInfoServiceI.save(logTradeInfo);
-
-        // 生成财务交易信息
-        LogTradeInfoEntity logTradeInfo2 = new LogTradeInfoEntity();
-        logTradeInfo2.setUsername(userMember.getUsername());
-        logTradeInfo2.setSerialno("1");
-        logTradeInfo2.setOrderCode(orderInject.getOrderCode());
-        logTradeInfo2.setStaticMoney(0.00); //注入支付金额
-        logTradeInfo2.setDynMoney(orderInject.getInterestReal()); // 利息金额
-        logTradeInfo2.setBackMoney(0.00);  // 返还到钱包金额
-        logTradeInfo2.setReleaseMoney(0.00); // 直推金额
-        logTradeInfo2.setTradeTime(new Date());
-        if("1".equals(orderInject.getVfield1())) {
-            logTradeInfo2.setReason("1-利息金额-本息钱包");
-        } else {
-            logTradeInfo2.setReason("2-利息金额-本息钱包");
-        }
-        logTradeInfo2.setRemark("");
-        logTradeInfo2.setInputtime(new Date());
-        logTradeInfo2.setInserttimeforhis(new Date());
-        logTradeInfo2.setOperatetimeforhis(new Date());
-        logTradeInfoServiceI.save(logTradeInfo2);
-		
-	}
 
 	public void saveOrUpdate(OrderInjectInfoEntity entity) throws Exception{
  		super.saveOrUpdate(entity);
@@ -158,13 +76,14 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
  	}
 
 	/**
-	 * 获取未完成的订单信息
+	 * 获取未完成的订单信息(首付款未支付01\尾款未支付02\保存期内03)
 	 * @return
 	 * @throws Exception
      */
 	@Override
 	public List<OrderInjectInfoEntity> getUndoneList(String userName) throws Exception {
-		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.username = :userName";
+//		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.username = :userName";
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03') and o.username = :userName";
 		Query queryObject = getSession().createQuery(query);
 		queryObject.setParameter("userName", userName);
 		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();

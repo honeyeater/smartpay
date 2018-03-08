@@ -61,13 +61,14 @@
                                         <a class="btn btn-info" href="javascript:payAmout('${unInjectInfo.orderCode}','1');">等待支付首付款</a>
                                     </c:if>
                                     <c:if test="${unInjectInfo.orderStatus == '02'}">
-                                        <a class="btn btn-info" href="javascript:payAmout('${unInjectInfo.orderCode}','2');">等待尾款匹配</a>
+                                        <a class="btn btn-info" href="javascript:payAmout('${unInjectInfo.orderCode}','2');">等待支付尾款</a>
                                     </c:if>
                                     <c:if test="${unInjectInfo.orderStatus == '03'}">
                                         <a class="btn btn-info" href="javascript:;">保存期</a>
+                                        <a class="btn btn-success" href="javascript:checkProvideQEnd('${unInjectInfo.orderCode}');">转入钱包</a>
                                     </c:if>
                                     <c:if test="${unInjectInfo.orderStatus == '04'}">
-                                        <a class="btn btn-success" href="javascript:checkProvideQEnd('${unInjectInfo.orderCode}');">转入提现</a>
+                                        <a class="btn btn-success" href="javascript:checkProvideQEnd('${unInjectInfo.orderCode}');">转入钱包</a>
                                     </c:if>
                                 </div>
                                 <div style="clear: both"></div>

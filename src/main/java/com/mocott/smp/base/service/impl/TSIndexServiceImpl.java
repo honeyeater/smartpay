@@ -61,6 +61,11 @@ public class TSIndexServiceImpl extends CommonServiceImpl implements TSIndexServ
 		request.setAttribute("baseLimit", this.getBaseLimit());
 	}
 
+	/**
+	 * 获取注入资金基础倍数
+	 * @return
+	 * @throws Exception
+     */
 	@Override
 	public String getBaseTimes() throws Exception{
 		String baseTimes = "1000.00";
@@ -72,11 +77,15 @@ public class TSIndexServiceImpl extends CommonServiceImpl implements TSIndexServ
 		return baseTimes;
 	}
 
+	/**
+	 * 获取注入资金限额
+	 * @return
+	 * @throws Exception
+     */
 	@Override
 	public String getBaseLimit() throws Exception{
-		String baseLimit = "1000000.00";
+		String baseLimit = "10000.00"; //默认为1W
 		TSConfigcodeEntity tsConfigcodeEntity2 = tsConfigcodeServiceI.getConfigValue(OrderConstant.Sys_Base_Limit);
-
 		if(tsConfigcodeEntity2 != null) {
 			baseLimit = tsConfigcodeEntity2.getConfigValue();
 		}

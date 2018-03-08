@@ -7,7 +7,7 @@ public class OrderConstant {
 
     // 注入资金订单状态
     public static String Order_First_Pay = "01"; //待支付首付款
-    public static String Order_Final_Pay = "02"; //待支付尾款
+    public static String Order_Final_Pay = "02"; //待支付尾款(周期结束后,进入到尾款支付)
     public static String Order_Confirm_Period = "03"; //回流中  //保存期
     public static String Order_Period_Finish = "04"; //回流完毕待提取
     public static String Order_Done = "05"; //已完成
@@ -20,8 +20,8 @@ public class OrderConstant {
     //系统配置项名称
     public static String Sys_First_PayRatio = "PayRatio"; //首付款支付比例
 
-    public static String Sys_Base_Times = "BaseTimes"; //基础倍数
-    public static String Sys_Base_Limit = "BaseLimit"; //基础限额
+    public static String Sys_Base_Times = "BaseTimes"; //注入资金基础倍数
+    public static String Sys_Base_Limit = "BaseLimit"; //注入资金限额
     public static String Rest_Rate = "RestRate"; //利息比例1.0
 
     public static String Sys_Base_UpTimes = "BaseUpTimes"; //提取基础倍数
@@ -36,4 +36,5 @@ public class OrderConstant {
 
 
     public static String Sum_Limit = "SumLimit"; //钱包限额
+
 }

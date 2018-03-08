@@ -708,7 +708,7 @@ public class DateUtils extends PropertyEditorSupport {
 	}
 
 	/**
-	 * 获取当前时间前的多少分钟前
+	 * 获取当前时间前+hour
 	 * @return
 	 */
 	public static Date getDateAdd(int hour, Date now) {

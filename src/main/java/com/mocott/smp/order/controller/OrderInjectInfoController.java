@@ -5,6 +5,7 @@ import com.mocott.smp.base.service.TSIndexServiceI;
 import com.mocott.smp.log.entity.LogTradeInfoEntity;
 import com.mocott.smp.log.service.LogTradeInfoServiceI;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
+import com.mocott.smp.order.model.OrderInInfo;
 import com.mocott.smp.order.service.OrderInjectInfoServiceI;
 
 import java.util.*;
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mocott.smp.order.service.OrderInjectServiceI;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
@@ -110,6 +112,9 @@ public class OrderInjectInfoController extends BaseController {
 	@Autowired
     private LogTradeInfoServiceI logTradeInfoServiceI;
 
+	@Autowired
+	private OrderInjectServiceI orderInjectService;
+
     /**
      * 财务明细列表 页面跳转
      *
@@ -199,23 +204,28 @@ public class OrderInjectInfoController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		message = "注入资金订单添加成功";
 		double priceD = 0.0;
-		String price = request.getParameter("price");
-		String randCode = request.getParameter("code");
-		String safePwd = request.getParameter("threePwin");
-		String userName = request.getParameter("inUserName");
-		HttpSession session = ContextHolderUtils.getSession();
+		String price = request.getParameter("price"); //注入金额
+		String randCode = request.getParameter("code"); //验证码
+		String safePwd = request.getParameter("threePwin"); //安全密码
+		String userName = request.getParameter("inUserName"); //用户名
+		FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
 
+		HttpSession session = ContextHolderUtils.getSession();
 		if(StringUtil.isNotEmpty(price)) {
 			priceD = Double.parseDouble(price);
 		}
 		try{
 			String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
 			FrontUserRegisterEntity userRegister = frontUserRegisterServiceI.queryEntityByUserName(userName);
-			String baseLimit = tsIndexServiceI.getBaseLimit();
-			String baseTimes = tsIndexServiceI.getBaseTimes();
+			FrontUserMemberEntity userMemberEntity = frontUserMemberServiceI.queryEntityByUserName(userName);
+
+			String baseLimit = tsIndexServiceI.getBaseLimit(); //限额
+			String baseTimes = tsIndexServiceI.getBaseTimes(); //基础倍数
 			double baseLimitD = Double.parseDouble(baseLimit);
 			double baseTimesD = Double.parseDouble(baseTimes);
+			double baseValue = userMemberEntity.getNfield1(); //第一次注入金额
 
+			//用户订单列表
 			List<OrderInjectInfoEntity> injectInfos = orderInjectInfoService.getListByUser(userName);
 			//有首付款\尾款未支付完成的订单,请完成后再次注入资金
 			List<OrderInjectInfoEntity> unPayList = orderInjectInfoService.getListByUndonePay(userName);
@@ -227,30 +237,23 @@ public class OrderInjectInfoController extends BaseController {
 			if(firstList != null && firstList.size()>0) {
 				hasFirst = true;
 			}
-			FrontUserMemberEntity userMemberEntity = frontUserMemberServiceI.queryEntityByUserName(userName);
 
 			//是否有未提取的订单
-			String walletType = getOrderWallet(userName);
-			boolean hasDF = false;
-			boolean hasBX = false;
-			if("1".equals(walletType) && hasFirst && !"1".equals(userMemberEntity.getVfield1())) { //待返钱包订单
-				hasDF = true;
+			String walletType = orderInjectService.getOrderWallet(userName);
+			//上一张订单的类型(0-没有订单或上一次是第一张注入订单,1-注入订单,2-提取订单)
+			String lastOrderType = orderInjectService.getLastOrderType(userName);
+			boolean hasTQ = false;
+			if("1".equals(lastOrderType)) { //有钱包金额未提取
+				hasTQ = true;
 			}
-			if("2".equals(walletType) && hasFirst && "1".equals(userMemberEntity.getVfield1())) { //本息钱包订单
-				hasBX = true;
-			}
-
-			if(unPayList != null && unPayList.size()>0) {
-				j.setMsg("有首付款或尾款未支付完成的订单,请完成后再注入资金!");
+			if(frontUser == null || !frontUser.getUserName().equals(userName)) {
+				j.setMsg("登录用户信息异常,请重新登录!");
 				j.setSuccess(false);
-			} else if("0".equals(walletType)) {
-				j.setMsg("有待返钱包和本息钱包的未完成的订单,请完成后再次注入资金!");
+			} else if(unPayList != null && unPayList.size()>0) {
+				j.setMsg("有首付款或尾款未支付完成的订单,请等待完成后再注入资金!");
 				j.setSuccess(false);
-			} else if(hasDF) {
-				j.setMsg("有待返钱包未提取,请先提取后再注入资金!");
-				j.setSuccess(false);
-			} else if(hasBX) {
-				j.setMsg("有本息钱包或直推钱包未提取,请先提取后再注入资金!");
+			} else if(hasTQ) {
+				j.setMsg("有钱包金额未提取,请先提取后再进行注入资金!");
 				j.setSuccess(false);
 			} else if (StringUtils.isEmpty(randCode)) {
 				j.setMsg(mutiLangService.getLang("common.enter.verifycode"));
@@ -259,7 +262,7 @@ public class OrderInjectInfoController extends BaseController {
 				j.setMsg(mutiLangService.getLang("common.verifycode.error"));
 				j.setSuccess(false);
 			} else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
-				j.setMsg("安全密码错误,请确认!");
+				j.setMsg("您输入的安全密码错误,请确认!");
 				j.setSuccess(false);
 			} else if(priceD%baseTimesD >0 || priceD == 0){
 				j.setMsg("注入资金必须是"+baseTimes+"的倍数");
@@ -267,58 +270,15 @@ public class OrderInjectInfoController extends BaseController {
 			} else if(priceD>baseLimitD){
 				j.setMsg("注入资金不能超过"+baseLimit+"的限额");
 				j.setSuccess(false);
+			} else if(baseValue >0 && baseValue != priceD) {
+				j.setMsg("再次注入金额必须与第一笔订单保持一致,请确认!");
+				j.setSuccess(false);
 			} else {
-				double firstPay = 0.0;
-				double firstPayRatio = 90;
-				//配置的首付比例
-				TSConfigcodeEntity tsConfigcodeEntity = tSConfigcodeServiceI.getConfigValue(OrderConstant.Sys_First_PayRatio);
-				if(tsConfigcodeEntity != null) {
-					String firstPayRatioS = tsConfigcodeEntity.getConfigValue();
-					if(StringUtil.isNotEmpty(firstPayRatioS)) {
-						firstPayRatio = Double.parseDouble(firstPayRatioS);
-					}
-				}
-				//计算首付比例
-				firstPay = firstPayRatio * priceD / 100.00;
-				Date now = new Date();
-				MakeOrderNum orderNum = new MakeOrderNum();
-				OrderInjectInfoEntity orderInjectInfo = new OrderInjectInfoEntity();
-				orderInjectInfo.setUsername(userName);
-				orderInjectInfo.setOrderCode(orderNum.makeOrderNum("P"));
-				orderInjectInfo.setOrderMoney(priceD);
-				orderInjectInfo.setOrderStatus(OrderConstant.Order_First_Pay); //产生订单,待支付首付款
-				orderInjectInfo.setOrderTime(now);
-				orderInjectInfo.setInterest(0.0); //应得利息
-				orderInjectInfo.setFirstPay(firstPay); //首付款金额
-				orderInjectInfo.setEndPay(priceD-firstPay);
-				orderInjectInfo.setFirstEndInternal(tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_First) != null ?
-						tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_First).getConfigValue():"5"); //收付款区间时间(小时)
-				orderInjectInfo.setSaveInternal(
-						tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Save) != null ?
-								tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Save).getConfigValue():"5"
-				);
-				orderInjectInfo.setRestRate(
-						tSConfigcodeServiceI.getConfigValue(OrderConstant.Rest_Rate) != null ?
-								Double.parseDouble(tSConfigcodeServiceI.getConfigValue(OrderConstant.Rest_Rate).getConfigValue()): 1.0
-						); //利息比例为1%
-				orderInjectInfo.setWaitStartTime(now);
-				String inter = tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Cycle) != null ?
-						tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Cycle).getConfigValue():"480";
-				orderInjectInfo.setWaitInternal(inter);
-				if(inter != null) {
-
-				}
-				orderInjectInfo.setWaitEndTime(DateUtils.getDateAdd(Integer.parseInt(inter),now));
-				orderInjectInfo.setInputtime(now);
-				orderInjectInfo.setInserttimeforhis(now);
-				orderInjectInfo.setOperatetimeforhis(now);
-
-				orderInjectInfo.setVfield1(getOrderWallet(userName));
-				if(injectInfos == null || injectInfos.size()==0) {
-					orderInjectInfo.setVfield2("1"); //第一次订单
-				}
-
-				orderInjectInfoService.save(orderInjectInfo);
+				// 生成订单
+				OrderInInfo orderInInfo = new OrderInInfo();
+				orderInInfo.setUsername(userName);
+				orderInInfo.setOrderMoney(priceD);
+				orderInjectService.generateOrder(orderInInfo);
 				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 				j.setMsg(message);
 				j.setSuccess(true);
@@ -329,34 +289,11 @@ public class OrderInjectInfoController extends BaseController {
 			message = "注入资金订单添加失败";
 			j.setMsg(message);
 			j.setSuccess(false);
-//			throw new BusinessException(e.getMessage());
 		}
 
 		return j;
 	}
 
-	/**
-	 * 获取当前订单注入的钱包
-	 * @return
-     */
-	private String getOrderWallet(String userName) throws Exception{
-		String walletType = "1"; //1-待返钱包 2-本息钱包
-		//未完成的待返钱包
-		List<OrderInjectInfoEntity> orderInBackList = orderInjectInfoService.getListByUndoneBack(userName);
-		//未完成的本息钱包
-		List<OrderInjectInfoEntity> orderInCouponList = orderInjectInfoService.getListByUndoneCoupon(userName);
-		//有待返钱包未完成,再次注入时订单为本息钱包
-		if(orderInBackList != null && orderInBackList.size()>0 && orderInCouponList != null &&
-				orderInCouponList.size()>0) {
-			return "0";
-		}
-		if(orderInBackList != null && orderInBackList.size()>0) {
-			walletType = "2";
-		} else if(orderInCouponList != null && orderInCouponList.size()>0) {
-			walletType = "1";
-		}
-		return walletType;
-	}
 
 	/**
 	 * 获取未完成的订单信息列表
@@ -791,6 +728,8 @@ public class OrderInjectInfoController extends BaseController {
 		try {
 			String orderCode = request.getParameter("payOrderCode");
 			String orderType = null;
+			List<OrderInjectInfoEntity> undoneList = orderInjectInfoService.getUndoneList(userName);
+
 			List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
 			OrderInjectInfoEntity orderInject = null;
 			if(orderInList != null && orderInList.size()>0) {
@@ -800,22 +739,19 @@ public class OrderInjectInfoController extends BaseController {
 				message = "订单信息无效,请联系管理员!";
 				j.setMsg(message);
 				j.setSuccess(false);
+			} else if(undoneList == null || undoneList.size()==0){
+				message = "提取前请先注入资金!";
+				j.setMsg(message);
+				j.setSuccess(false);
 			} else {
-				orderType = orderInject.getVfield1();
-				if("1".equals(orderType) || "2".equals(orderType)) {
-					if(StringUtil.isNotEmpty(orderInject.getDfield1())) { //提现时间
-						message = "订单已进行过提现,请刷新页面查看!";
-						j.setMsg(message);
-						j.setSuccess(false);
-					} else {
-						orderInjectInfoService.doSaveInWallet(orderInject, userMember);
-						j.setMsg(message);
-						j.setSuccess(true);
-					}
-				} else {
-					message = "订单异常,请联系管理员!";
+				if(StringUtil.isNotEmpty(orderInject.getDfield1())) { //提现时间
+					message = "订单已进行过提现,请刷新页面查看!";
 					j.setMsg(message);
 					j.setSuccess(false);
+				} else {
+					orderInjectService.doSaveInWallet(orderInject, userMember);
+					j.setMsg(message);
+					j.setSuccess(true);
 				}
 			}
 		} catch (Exception e) {
