@@ -1,4 +1,4 @@
-package com.mocott.smp.trade.entity;
+package .smp.entity;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -20,54 +20,33 @@ import org.jeecgframework.poi.excel.annotation.Excel;
 
 /**   
  * @Title: Entity
- * @Description: USDT交易信息
+ * @Description: USDT价格信息
  * @author onlineGenerator
- * @date 2018-03-08 00:52:14
+ * @date 2018-03-08 00:52:24
  * @version V1.0   
  *
  */
 @Entity
-@Table(name = "usdt_trade", schema = "")
+@Table(name = "usdt_price", schema = "")
 @SuppressWarnings("serial")
-public class UsdtTradeEntity implements java.io.Serializable {
+public class UsdtPriceEntity implements java.io.Serializable {
 	/**ID*/
-	private String id;
-	/**用户名*/
-	@Excel(name="用户名",width=15)
-	private String username;
-	/**会员级别*/
-	@Excel(name="会员级别",width=15)
-	private String tradeNo;
+	private java.lang.String id;
+	/**生成日期*/
+	@Excel(name="生成日期",width=15)
+	private java.lang.String createTime;
 	/**货币类型*/
 	@Excel(name="货币类型",width=15)
-	private String currencyType;
-	/**价格*/
-	@Excel(name="价格",width=15)
-	private Double price;
+	private java.lang.String currencyType;
+	/**冻结数量*/
+	@Excel(name="冻结数量",width=15)
+	private java.lang.Double price;
 	/**数量*/
 	@Excel(name="数量",width=15)
-	private Double num;
-	/**金额*/
-	@Excel(name="金额",width=15)
-	private Double money;
-	/**手续费比例*/
-	@Excel(name="手续费比例",width=15)
-	private Double feeRate;
-	/**费用*/
-	@Excel(name="费用",width=15)
-	private Double fee;
-    /**费用*/
-    @Excel(name="总金额",width=15)
-    private Double sumAmount;
-	/**交易类型*/
-	@Excel(name="交易类型",width=15)
-	private String tradeType;
-	/**状态*/
-	@Excel(name="状态",width=15)
-	private String status;
-	/**提出地址*/
-	@Excel(name="提出地址",width=15)
-	private String drawUrl;
+	private java.lang.Double num;
+	/**钱包充值地址*/
+	@Excel(name="钱包充值地址",width=15)
+	private java.lang.String status;
 	/**输入日期*/
 	@Excel(name="输入日期",width=15,format = "yyyy-MM-dd")
 	private java.util.Date inputtime;
@@ -79,34 +58,34 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	private java.util.Date operatetimeforhis;
 	/**扩展字符字段*/
 	@Excel(name="扩展字符字段",width=15)
-	private String vfield1;
+	private java.lang.String vfield1;
 	/**扩展字符字段*/
 	@Excel(name="扩展字符字段",width=15)
-	private String vfield2;
+	private java.lang.String vfield2;
 	/**扩展字符字段*/
 	@Excel(name="扩展字符字段",width=15)
-	private String vfield3;
+	private java.lang.String vfield3;
 	/**扩展字符字段*/
 	@Excel(name="扩展字符字段",width=15)
-	private String vfield4;
+	private java.lang.String vfield4;
 	/**扩展字符字段*/
 	@Excel(name="扩展字符字段",width=15)
-	private String vfield5;
+	private java.lang.String vfield5;
 	/**扩展字符字段*/
 	@Excel(name="扩展字符字段",width=15)
-	private String vfield6;
+	private java.lang.String vfield6;
 	/**扩展金额字段*/
 	@Excel(name="扩展金额字段",width=15)
-	private Double nfield1;
+	private java.lang.Double nfield1;
 	/**扩展金额字段*/
 	@Excel(name="扩展金额字段",width=15)
-	private Double nfield2;
+	private java.lang.Double nfield2;
 	/**扩展金额字段*/
 	@Excel(name="扩展金额字段",width=15)
-	private Double nfield3;
+	private java.lang.Double nfield3;
 	/**扩展金额字段*/
 	@Excel(name="扩展金额字段",width=15)
-	private Double nfield4;
+	private java.lang.Double nfield4;
 	/**扩展时间字段*/
 	@Excel(name="扩展时间字段",width=15,format = "yyyy-MM-dd")
 	private java.util.Date dfield1;
@@ -129,7 +108,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	@GenericGenerator(name = "paymentableGenerator", strategy = "uuid")
 
 	@Column(name ="ID",nullable=false,length=32)
-	public String getId(){
+	public java.lang.String getId(){
 		return this.id;
 	}
 
@@ -137,50 +116,33 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  ID
 	 */
-	public void setId(String id){
+	public void setId(java.lang.String id){
 		this.id = id;
 	}
 	/**
 	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  用户名
+	 *@return: java.lang.String  生成日期
 	 */
 
-	@Column(name ="USERNAME",nullable=true,length=32)
-	public String getUsername(){
-		return this.username;
+	@Column(name ="CREATE_TIME",nullable=true,length=32)
+	public java.lang.String getCreateTime(){
+		return this.createTime;
 	}
 
 	/**
 	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  用户名
+	 *@param: java.lang.String  生成日期
 	 */
-	public void setUsername(String username){
-		this.username = username;
-	}
-	/**
-	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  会员级别
-	 */
-
-	@Column(name ="TRADE_NO",nullable=true,length=40)
-	public String getTradeNo(){
-		return this.tradeNo;
-	}
-
-	/**
-	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  会员级别
-	 */
-	public void setTradeNo(String tradeNo){
-		this.tradeNo = tradeNo;
+	public void setCreateTime(java.lang.String createTime){
+		this.createTime = createTime;
 	}
 	/**
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  货币类型
 	 */
 
-	@Column(name ="CURRENCY_TYPE",nullable=true,length=32)
-	public String getCurrencyType(){
+	@Column(name ="CURRENCY_TYPE",nullable=true,length=4)
+	public java.lang.String getCurrencyType(){
 		return this.currencyType;
 	}
 
@@ -188,24 +150,24 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  货币类型
 	 */
-	public void setCurrencyType(String currencyType){
+	public void setCurrencyType(java.lang.String currencyType){
 		this.currencyType = currencyType;
 	}
 	/**
 	 *方法: 取得java.lang.Double
-	 *@return: java.lang.Double  价格
+	 *@return: java.lang.Double  冻结数量
 	 */
 
 	@Column(name ="PRICE",nullable=true,scale=3,length=14)
-	public Double getPrice(){
+	public java.lang.Double getPrice(){
 		return this.price;
 	}
 
 	/**
 	 *方法: 设置java.lang.Double
-	 *@param: java.lang.Double  价格
+	 *@param: java.lang.Double  冻结数量
 	 */
-	public void setPrice(Double price){
+	public void setPrice(java.lang.Double price){
 		this.price = price;
 	}
 	/**
@@ -214,7 +176,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="NUM",nullable=true,scale=3,length=14)
-	public Double getNum(){
+	public java.lang.Double getNum(){
 		return this.num;
 	}
 
@@ -222,110 +184,25 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.Double
 	 *@param: java.lang.Double  数量
 	 */
-	public void setNum(Double num){
+	public void setNum(java.lang.Double num){
 		this.num = num;
 	}
 	/**
-	 *方法: 取得java.lang.Double
-	 *@return: java.lang.Double  金额
-	 */
-
-	@Column(name ="MONEY",nullable=true,scale=3,length=14)
-	public Double getMoney(){
-		return this.money;
-	}
-
-	/**
-	 *方法: 设置java.lang.Double
-	 *@param: java.lang.Double  金额
-	 */
-	public void setMoney(Double money){
-		this.money = money;
-	}
-	/**
-	 *方法: 取得java.lang.Double
-	 *@return: java.lang.Double  手续费比例
-	 */
-
-	@Column(name ="FEE_RATE",nullable=true,scale=3,length=14)
-	public Double getFeeRate(){
-		return this.feeRate;
-	}
-
-	/**
-	 *方法: 设置java.lang.Double
-	 *@param: java.lang.Double  手续费比例
-	 */
-	public void setFeeRate(Double feeRate){
-		this.feeRate = feeRate;
-	}
-	/**
-	 *方法: 取得java.lang.Double
-	 *@return: java.lang.Double  费用
-	 */
-
-	@Column(name ="FEE",nullable=true,scale=3,length=14)
-	public Double getFee(){
-		return this.fee;
-	}
-
-	/**
-	 *方法: 设置java.lang.Double
-	 *@param: java.lang.Double  费用
-	 */
-	public void setFee(Double fee){
-		this.fee = fee;
-	}
-	/**
 	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  交易类型
-	 */
-
-	@Column(name ="TRADE_TYPE",nullable=true,length=40)
-	public String getTradeType(){
-		return this.tradeType;
-	}
-
-	/**
-	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  交易类型
-	 */
-	public void setTradeType(String tradeType){
-		this.tradeType = tradeType;
-	}
-	/**
-	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  状态
+	 *@return: java.lang.String  钱包充值地址
 	 */
 
 	@Column(name ="STATUS",nullable=true,length=4)
-	public String getStatus(){
+	public java.lang.String getStatus(){
 		return this.status;
 	}
 
 	/**
 	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  状态
+	 *@param: java.lang.String  钱包充值地址
 	 */
-	public void setStatus(String status){
+	public void setStatus(java.lang.String status){
 		this.status = status;
-	}
-	/**
-	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  提出地址
-	 */
-
-	@Column(name ="DRAW_URL",nullable=true,length=100)
-	public String getDrawUrl(){
-		return this.drawUrl;
-	}
-
-	/**
-	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  提出地址
-	 */
-	public void setDrawUrl(String drawUrl){
-		this.drawUrl = drawUrl;
 	}
 	/**
 	 *方法: 取得java.util.Date
@@ -384,7 +261,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="VFIELD1",nullable=true,length=255)
-	public String getVfield1(){
+	public java.lang.String getVfield1(){
 		return this.vfield1;
 	}
 
@@ -392,7 +269,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  扩展字符字段
 	 */
-	public void setVfield1(String vfield1){
+	public void setVfield1(java.lang.String vfield1){
 		this.vfield1 = vfield1;
 	}
 	/**
@@ -401,7 +278,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="VFIELD2",nullable=true,length=255)
-	public String getVfield2(){
+	public java.lang.String getVfield2(){
 		return this.vfield2;
 	}
 
@@ -409,7 +286,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  扩展字符字段
 	 */
-	public void setVfield2(String vfield2){
+	public void setVfield2(java.lang.String vfield2){
 		this.vfield2 = vfield2;
 	}
 	/**
@@ -418,7 +295,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="VFIELD3",nullable=true,length=255)
-	public String getVfield3(){
+	public java.lang.String getVfield3(){
 		return this.vfield3;
 	}
 
@@ -426,7 +303,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  扩展字符字段
 	 */
-	public void setVfield3(String vfield3){
+	public void setVfield3(java.lang.String vfield3){
 		this.vfield3 = vfield3;
 	}
 	/**
@@ -435,7 +312,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="VFIELD4",nullable=true,length=255)
-	public String getVfield4(){
+	public java.lang.String getVfield4(){
 		return this.vfield4;
 	}
 
@@ -443,7 +320,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  扩展字符字段
 	 */
-	public void setVfield4(String vfield4){
+	public void setVfield4(java.lang.String vfield4){
 		this.vfield4 = vfield4;
 	}
 	/**
@@ -452,7 +329,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="VFIELD5",nullable=true,length=255)
-	public String getVfield5(){
+	public java.lang.String getVfield5(){
 		return this.vfield5;
 	}
 
@@ -460,7 +337,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  扩展字符字段
 	 */
-	public void setVfield5(String vfield5){
+	public void setVfield5(java.lang.String vfield5){
 		this.vfield5 = vfield5;
 	}
 	/**
@@ -469,7 +346,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="VFIELD6",nullable=true,length=255)
-	public String getVfield6(){
+	public java.lang.String getVfield6(){
 		return this.vfield6;
 	}
 
@@ -477,7 +354,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  扩展字符字段
 	 */
-	public void setVfield6(String vfield6){
+	public void setVfield6(java.lang.String vfield6){
 		this.vfield6 = vfield6;
 	}
 	/**
@@ -486,7 +363,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="NFIELD1",nullable=true,scale=3,length=10)
-	public Double getNfield1(){
+	public java.lang.Double getNfield1(){
 		return this.nfield1;
 	}
 
@@ -494,7 +371,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.Double
 	 *@param: java.lang.Double  扩展金额字段
 	 */
-	public void setNfield1(Double nfield1){
+	public void setNfield1(java.lang.Double nfield1){
 		this.nfield1 = nfield1;
 	}
 	/**
@@ -503,7 +380,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="NFIELD2",nullable=true,scale=3,length=10)
-	public Double getNfield2(){
+	public java.lang.Double getNfield2(){
 		return this.nfield2;
 	}
 
@@ -511,7 +388,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.Double
 	 *@param: java.lang.Double  扩展金额字段
 	 */
-	public void setNfield2(Double nfield2){
+	public void setNfield2(java.lang.Double nfield2){
 		this.nfield2 = nfield2;
 	}
 	/**
@@ -520,7 +397,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="NFIELD3",nullable=true,scale=3,length=10)
-	public Double getNfield3(){
+	public java.lang.Double getNfield3(){
 		return this.nfield3;
 	}
 
@@ -528,7 +405,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.Double
 	 *@param: java.lang.Double  扩展金额字段
 	 */
-	public void setNfield3(Double nfield3){
+	public void setNfield3(java.lang.Double nfield3){
 		this.nfield3 = nfield3;
 	}
 	/**
@@ -537,7 +414,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 */
 
 	@Column(name ="NFIELD4",nullable=true,scale=3,length=10)
-	public Double getNfield4(){
+	public java.lang.Double getNfield4(){
 		return this.nfield4;
 	}
 
@@ -545,7 +422,7 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.Double
 	 *@param: java.lang.Double  扩展金额字段
 	 */
-	public void setNfield4(Double nfield4){
+	public void setNfield4(java.lang.Double nfield4){
 		this.nfield4 = nfield4;
 	}
 	/**
@@ -616,13 +493,4 @@ public class UsdtTradeEntity implements java.io.Serializable {
 	public void setDfield4(java.util.Date dfield4){
 		this.dfield4 = dfield4;
 	}
-
-
-    public Double getSumAmount() {
-        return sumAmount;
-    }
-
-    public void setSumAmount(Double sumAmount) {
-        this.sumAmount = sumAmount;
-    }
 }

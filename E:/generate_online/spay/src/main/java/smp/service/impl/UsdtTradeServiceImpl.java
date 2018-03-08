@@ -1,14 +1,10 @@
-package com.mocott.smp.trade.service.impl;
-
-import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
-import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
-import com.mocott.smp.user.entity.FrontUserMemberEntity;
-import org.hibernate.Query;
+package .smp.service.impl;
+import .smp.service.UsdtTradeServiceI;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
+import .smp.entity.UsdtTradeEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.Serializable;
@@ -17,53 +13,36 @@ import org.jeecgframework.core.util.MyClassLoader;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
 
-@Service("userUsdtInfoService")
+@Service("usdtTradeService")
 @Transactional
-public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUsdtInfoServiceI {
+public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTradeServiceI {
 
 	
- 	public void delete(UserUsdtInfoEntity entity) throws Exception{
+ 	public void delete(UsdtTradeEntity entity) throws Exception{
  		super.delete(entity);
  		//执行删除操作增强业务
 		this.doDelBus(entity);
  	}
  	
- 	public Serializable save(UserUsdtInfoEntity entity) throws Exception{
+ 	public Serializable save(UsdtTradeEntity entity) throws Exception{
  		Serializable t = super.save(entity);
  		//执行新增操作增强业务
  		this.doAddBus(entity);
  		return t;
  	}
  	
- 	public void saveOrUpdate(UserUsdtInfoEntity entity) throws Exception{
+ 	public void saveOrUpdate(UsdtTradeEntity entity) throws Exception{
  		super.saveOrUpdate(entity);
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
-
-    /**
-     * 根据用户名获取USDT账户信息
-     * @param username
-     * @return
-     * @throws Exception
-     */
-    public UserUsdtInfoEntity queryUserUsdtByUserName(String username) throws Exception {
- 	    String query = " from UserUsdtInfoEntity u where u.username =:username";
-        Query queryObject = getSession().createQuery(query);
-        queryObject.setParameter("username", username);
-        List<UserUsdtInfoEntity> userUsdtInfos = queryObject.list();
-        if(userUsdtInfos != null && userUsdtInfos.size()>0) {
-            return userUsdtInfos.get(0);
-        }
-        return null;
-    }
  	
  	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return
 	 */
-	private void doAddBus(UserUsdtInfoEntity t) throws Exception{
+	private void doAddBus(UsdtTradeEntity t) throws Exception{
 		//-----------------sql增强 start----------------------------
 	 	//-----------------sql增强 end------------------------------
 	 	
@@ -75,7 +54,7 @@ public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUs
 	 * @param t
 	 * @return
 	 */
-	private void doUpdateBus(UserUsdtInfoEntity t) throws Exception{
+	private void doUpdateBus(UsdtTradeEntity t) throws Exception{
 		//-----------------sql增强 start----------------------------
 	 	//-----------------sql增强 end------------------------------
 	 	
@@ -87,7 +66,7 @@ public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUs
 	 * @param id
 	 * @return
 	 */
-	private void doDelBus(UserUsdtInfoEntity t) throws Exception{
+	private void doDelBus(UsdtTradeEntity t) throws Exception{
 	    //-----------------sql增强 start----------------------------
 	 	//-----------------sql增强 end------------------------------
 	 	
@@ -95,18 +74,20 @@ public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUs
 	 	//-----------------java增强 end-----------------------------
  	}
  	
- 	private Map<String,Object> populationMap(UserUsdtInfoEntity t){
+ 	private Map<String,Object> populationMap(UsdtTradeEntity t){
 		Map<String,Object> map = new HashMap<String,Object>();
 		map.put("id", t.getId());
 		map.put("username", t.getUsername());
-		map.put("user_level", t.getUserLevel());
-		map.put("sum_amount", t.getSumAmount());
+		map.put("trade_no", t.getTradeNo());
 		map.put("currency_type", t.getCurrencyType());
+		map.put("price", t.getPrice());
 		map.put("num", t.getNum());
-		map.put("forzen_num", t.getForzenNum());
-		map.put("into_url", t.getIntoUrl());
-		map.put("cny_amount", t.getCnyAmount());
-		map.put("forzen_amount", t.getForzenAmount());
+		map.put("money", t.getMoney());
+		map.put("fee_rate", t.getFeeRate());
+		map.put("fee", t.getFee());
+		map.put("trade_type", t.getTradeType());
+		map.put("status", t.getStatus());
+		map.put("draw_url", t.getDrawUrl());
 		map.put("inputtime", t.getInputtime());
 		map.put("inserttimeforhis", t.getInserttimeforhis());
 		map.put("operatetimeforhis", t.getOperatetimeforhis());
@@ -133,17 +114,19 @@ public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUs
 	 * @param t
 	 * @return
 	 */
- 	public String replaceVal(String sql,UserUsdtInfoEntity t){
+ 	public String replaceVal(String sql,UsdtTradeEntity t){
  		sql  = sql.replace("#{id}",String.valueOf(t.getId()));
  		sql  = sql.replace("#{username}",String.valueOf(t.getUsername()));
- 		sql  = sql.replace("#{user_level}",String.valueOf(t.getUserLevel()));
- 		sql  = sql.replace("#{sum_amount}",String.valueOf(t.getSumAmount()));
+ 		sql  = sql.replace("#{trade_no}",String.valueOf(t.getTradeNo()));
  		sql  = sql.replace("#{currency_type}",String.valueOf(t.getCurrencyType()));
+ 		sql  = sql.replace("#{price}",String.valueOf(t.getPrice()));
  		sql  = sql.replace("#{num}",String.valueOf(t.getNum()));
- 		sql  = sql.replace("#{forzen_num}",String.valueOf(t.getForzenNum()));
- 		sql  = sql.replace("#{into_url}",String.valueOf(t.getIntoUrl()));
- 		sql  = sql.replace("#{cny_amount}",String.valueOf(t.getCnyAmount()));
- 		sql  = sql.replace("#{forzen_amount}",String.valueOf(t.getForzenAmount()));
+ 		sql  = sql.replace("#{money}",String.valueOf(t.getMoney()));
+ 		sql  = sql.replace("#{fee_rate}",String.valueOf(t.getFeeRate()));
+ 		sql  = sql.replace("#{fee}",String.valueOf(t.getFee()));
+ 		sql  = sql.replace("#{trade_type}",String.valueOf(t.getTradeType()));
+ 		sql  = sql.replace("#{status}",String.valueOf(t.getStatus()));
+ 		sql  = sql.replace("#{draw_url}",String.valueOf(t.getDrawUrl()));
  		sql  = sql.replace("#{inputtime}",String.valueOf(t.getInputtime()));
  		sql  = sql.replace("#{inserttimeforhis}",String.valueOf(t.getInserttimeforhis()));
  		sql  = sql.replace("#{operatetimeforhis}",String.valueOf(t.getOperatetimeforhis()));
@@ -180,7 +163,7 @@ public class UserUsdtInfoServiceImpl extends CommonServiceImpl implements UserUs
 				}
 				if(obj instanceof CgformEnhanceJavaInter){
 					CgformEnhanceJavaInter javaInter = (CgformEnhanceJavaInter) obj;
-					javaInter.execute("user_usdt_info",data);
+					javaInter.execute("usdt_trade",data);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

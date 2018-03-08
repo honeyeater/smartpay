@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <div class="container" id="tradeCenter">
+<<<<<<< HEAD
     <div class="row">
         <div class="col-lg-2">
         </div>
@@ -73,3 +74,27 @@
         <div class="col-lg-2"></div>
     </div>
 </div>
+=======
+
+
+    <!--
+    buyprice
+    buynum
+    buyfee
+    buysumamount
+    buyalipay
+    buybankcard
+    buysafepwd
+
+    saleprice
+    salenum
+    salefee
+    sale
+    drawurl
+    salesafepwd
+
+    -->
+</div>
+
+
+>>>>>>> eda6a627ef1b76080eaa83815223b08924d78f13

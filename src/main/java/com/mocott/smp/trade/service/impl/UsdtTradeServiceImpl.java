@@ -1,13 +1,18 @@
 package com.mocott.smp.trade.service.impl;
 
 import com.mocott.smp.trade.entity.UsdtTradeEntity;
+import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
+import com.mocott.smp.trade.model.UsdtTradeInfo;
 import com.mocott.smp.trade.service.UsdtTradeServiceI;
+import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
+import com.mocott.smp.util.MakeOrderNum;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
 import java.io.Serializable;
 import org.jeecgframework.core.util.ApplicationContextUtil;
 import org.jeecgframework.core.util.MyClassLoader;
@@ -18,7 +23,9 @@ import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
 @Transactional
 public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTradeServiceI {
 
-	
+	@Autowired
+    private UserUsdtInfoServiceI userUsdtInfoService;
+
  	public void delete(UsdtTradeEntity entity) throws Exception{
  		super.delete(entity);
  		//执行删除操作增强业务
@@ -37,8 +44,129 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+    /**
+     * 保存买入信息
+     * @param usdtTradeInfo
+     * @throws Exception
+     */
+    public void saveBuy(UsdtTradeInfo usdtTradeInfo) throws Exception {
+        MakeOrderNum makeOrderNum = new MakeOrderNum();
+        Date now =new Date();
+        UsdtTradeEntity usdtTradeEntity = new UsdtTradeEntity();
+        usdtTradeEntity.setUsername(usdtTradeInfo.getUserName());
+        usdtTradeEntity.setTradeNo(makeOrderNum.makeOrderNum("U"));
+        usdtTradeEntity.setCurrencyType("USDT");
+        usdtTradeEntity.setPrice(Double.parseDouble(usdtTradeInfo.getBuyprice()));
+        usdtTradeEntity.setNum(Double.parseDouble(usdtTradeInfo.getBuynum()));
+        usdtTradeEntity.setMoney(Double.parseDouble(usdtTradeInfo.getBuysumamount()));
+        usdtTradeEntity.setFeeRate(Double.parseDouble(usdtTradeInfo.getBuyfeerate()));
+        usdtTradeEntity.setFee(Double.parseDouble(usdtTradeInfo.getBuyfee()));
+        usdtTradeEntity.setStatus("0"); //待审核
+        usdtTradeEntity.setTradeType("1"); //1-买入 2-卖出
+        usdtTradeEntity.setInputtime(now);
+        usdtTradeEntity.setInserttimeforhis(now);
+        usdtTradeEntity.setOperatetimeforhis(now);
+        this.save(usdtTradeEntity);
+    }
+
+    /**
+     * 买入信息审核
+     * @throws Exception
+     */
+    public void buyAudit(UsdtTradeEntity usdtTradeEntity, String auditFlag) throws Exception {
+        Date now = new Date();
+        if("1".equals(auditFlag)) { // 审核通过
+            usdtTradeEntity.setStatus("1");
+        }
+        if("0".equals(auditFlag)) { // 审核不通过
+            usdtTradeEntity.setStatus("-1");
+        }
+        usdtTradeEntity.setOperatetimeforhis(now);
+        usdtTradeEntity.setVfield1("当前用户");
+        this.saveOrUpdate(usdtTradeEntity);
+
+        // 审核通过
+        if("1".equals(usdtTradeEntity.getStatus())) {
+            UserUsdtInfoEntity userUsdtInfoEntity = userUsdtInfoService.queryUserUsdtByUserName(usdtTradeEntity.getUsername());
+            if(userUsdtInfoEntity != null) {
+                double num = userUsdtInfoEntity.getNum();
+                num = num + usdtTradeEntity.getNum();
+                userUsdtInfoEntity.setNum(num);
+                userUsdtInfoEntity.setOperatetimeforhis(now);
+                userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
+            }
+        }
+    }
+
+    /**
+     * 卖出信息审核
+     * @throws Exception
+     */
+    public void saleAudit(UsdtTradeEntity usdtTradeEntity, String auditFlag) throws Exception {
+        Date now = new Date();
+        if("1".equals(auditFlag)) { // 审核通过
+            usdtTradeEntity.setStatus("1");
+        }
+        if("0".equals(auditFlag)) { // 审核不通过
+            usdtTradeEntity.setStatus("-1");
+        }
+        usdtTradeEntity.setOperatetimeforhis(now);
+        usdtTradeEntity.setVfield1("当前用户");
+        this.saveOrUpdate(usdtTradeEntity);
+
+        // 审核通过
+        if("1".equals(usdtTradeEntity.getStatus())) {
+            UserUsdtInfoEntity userUsdtInfoEntity = userUsdtInfoService.queryUserUsdtByUserName(usdtTradeEntity.getUsername());
+            if(userUsdtInfoEntity != null) {
+                double num = userUsdtInfoEntity.getNum();
+                num = num - usdtTradeEntity.getNum();
+                userUsdtInfoEntity.setNum(num);
+                userUsdtInfoEntity.setOperatetimeforhis(now);
+                userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
+            }
+        }
+    }
+    /**
+     * 保存卖出信息
+     * @param usdtTradeInfo
+     * @throws Exception
+     */
+    public void saveSale(UsdtTradeInfo usdtTradeInfo) throws Exception {
+        MakeOrderNum makeOrderNum = new MakeOrderNum();
+        Date now =new Date();
+        UsdtTradeEntity usdtTradeEntity = new UsdtTradeEntity();
+        usdtTradeEntity.setUsername(usdtTradeInfo.getUserName());
+        usdtTradeEntity.setTradeNo(makeOrderNum.makeOrderNum("U"));
+        usdtTradeEntity.setCurrencyType("USDT");
+        usdtTradeEntity.setPrice(Double.parseDouble(usdtTradeInfo.getSaleprice()));
+        usdtTradeEntity.setNum(Double.parseDouble(usdtTradeInfo.getSalenum()));
+        usdtTradeEntity.setMoney(Double.parseDouble(usdtTradeInfo.getSalesumamount()));
+        usdtTradeEntity.setFeeRate(Double.parseDouble(usdtTradeInfo.getSalefeerate()));
+        usdtTradeEntity.setFee(Double.parseDouble(usdtTradeInfo.getSalefee()));
+        usdtTradeEntity.setDrawUrl(usdtTradeInfo.getSaledrawurl());
+        usdtTradeEntity.setStatus("0"); //待审核
+        usdtTradeEntity.setTradeType("2"); //1-买入 2-卖出
+        usdtTradeEntity.setInputtime(now);
+        usdtTradeEntity.setInserttimeforhis(now);
+        usdtTradeEntity.setOperatetimeforhis(now);
+        this.save(usdtTradeEntity);
+    }
+
+    /**
+     * 根据用户名获取交易信息
+     * @param username
+     * @return
+     */
+    public List<UsdtTradeEntity> getUsdtListByUserName(String username) {
+        String query = " from UsdtTradeEntity u where u.username =:username";
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("username", username);
+        List<UsdtTradeEntity> usdtLists = queryObject.list();
+        return  usdtLists;
+    }
+
+    /**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return
@@ -64,7 +192,6 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
  	}
  	/**
 	 * 删除操作增强业务
-	 * @param id
 	 * @return
 	 */
 	private void doDelBus(UsdtTradeEntity t) throws Exception{
