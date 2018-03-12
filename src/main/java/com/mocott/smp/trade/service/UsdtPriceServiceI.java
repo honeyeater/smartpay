@@ -12,5 +12,6 @@ public interface UsdtPriceServiceI extends CommonService{
  	public Serializable save(UsdtPriceEntity entity) throws Exception;
  	
  	public void saveOrUpdate(UsdtPriceEntity entity) throws Exception;
- 	
+
+	public UsdtPriceEntity getNewPrice() throws Exception;
 }

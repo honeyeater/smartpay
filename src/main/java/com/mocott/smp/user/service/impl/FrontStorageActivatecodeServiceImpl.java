@@ -1,72 +1,57 @@
-package com.mocott.smp.trade.service.impl;
+package com.mocott.smp.user.service.impl;
 
-import com.mocott.smp.trade.entity.UsdtPriceEntity;
-import com.mocott.smp.trade.service.UsdtPriceServiceI;
-import com.mocott.smp.util.OrderConstant;
+import com.mocott.smp.user.entity.FrontStorageActivatecodeEntity;
+import com.mocott.smp.user.service.FrontStorageActivatecodeServiceI;
 import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
-import org.jeecgframework.core.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.io.Serializable;
 import org.jeecgframework.core.util.ApplicationContextUtil;
 import org.jeecgframework.core.util.MyClassLoader;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
 
-@Service("usdtPriceService")
+@Service("frontStorageActivatecodeService")
 @Transactional
-public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPriceServiceI {
+public class FrontStorageActivatecodeServiceImpl extends CommonServiceImpl implements FrontStorageActivatecodeServiceI {
 
 	
- 	public void delete(UsdtPriceEntity entity) throws Exception{
+ 	public void delete(FrontStorageActivatecodeEntity entity) throws Exception{
  		super.delete(entity);
  		//执行删除操作增强业务
 		this.doDelBus(entity);
  	}
  	
- 	public Serializable save(UsdtPriceEntity entity) throws Exception{
+ 	public Serializable save(FrontStorageActivatecodeEntity entity) throws Exception{
  		Serializable t = super.save(entity);
  		//执行新增操作增强业务
  		this.doAddBus(entity);
  		return t;
  	}
  	
- 	public void saveOrUpdate(UsdtPriceEntity entity) throws Exception{
+ 	public void saveOrUpdate(FrontStorageActivatecodeEntity entity) throws Exception{
  		super.saveOrUpdate(entity);
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
 
+
 	/**
-	 * 获取当天最新的价格信息
+	 * 根据激活码获取激活信息
+	 * @param activatecode
 	 * @return
 	 * @throws Exception
      */
-	public UsdtPriceEntity getNewPrice() throws Exception {
-		String  dateStr = DateUtils.formatDate();
-		String condition = " createTime < DATE_FORMAT('" + dateStr + " 23:59:59','%Y-%m-%d %H:%i:%s') ";
-		String query = " from UsdtPriceEntity where " + condition;
+	public List<FrontStorageActivatecodeEntity> getByActivateCode(String activatecode) throws Exception {
+		String query = " from FrontStorageActivatecodeEntity u where u.activieCode = :activieCode";
 		Query queryObject = getSession().createQuery(query);
-		List<UsdtPriceEntity> prices = queryObject.list();
-		if(prices == null || prices.size() == 0) {
-			return defaultPrice();
-		} else {
-			return prices.get(0);
-		}
-	}
-
-	/**
-	 * 确实价格
-	 * @return
-     */
-	private UsdtPriceEntity defaultPrice() {
-		UsdtPriceEntity usdtPriceEntity = new UsdtPriceEntity();
-		usdtPriceEntity.setPrice(OrderConstant.DefaultPirce);
-		usdtPriceEntity.setCreateTime(new Date());
-		return usdtPriceEntity;
+		queryObject.setParameter("activieCode", activatecode);
+		return queryObject.list();
 	}
 
 	/**
@@ -74,7 +59,7 @@ public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPrice
 	 * @param t
 	 * @return
 	 */
-	private void doAddBus(UsdtPriceEntity t) throws Exception{
+	private void doAddBus(FrontStorageActivatecodeEntity t) throws Exception{
 		//-----------------sql增强 start----------------------------
 	 	//-----------------sql增强 end------------------------------
 	 	
@@ -86,7 +71,7 @@ public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPrice
 	 * @param t
 	 * @return
 	 */
-	private void doUpdateBus(UsdtPriceEntity t) throws Exception{
+	private void doUpdateBus(FrontStorageActivatecodeEntity t) throws Exception{
 		//-----------------sql增强 start----------------------------
 	 	//-----------------sql增强 end------------------------------
 	 	
@@ -98,7 +83,7 @@ public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPrice
 	 * @param id
 	 * @return
 	 */
-	private void doDelBus(UsdtPriceEntity t) throws Exception{
+	private void doDelBus(FrontStorageActivatecodeEntity t) throws Exception{
 	    //-----------------sql增强 start----------------------------
 	 	//-----------------sql增强 end------------------------------
 	 	
@@ -106,14 +91,17 @@ public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPrice
 	 	//-----------------java增强 end-----------------------------
  	}
  	
- 	private Map<String,Object> populationMap(UsdtPriceEntity t){
+ 	private Map<String,Object> populationMap(FrontStorageActivatecodeEntity t){
 		Map<String,Object> map = new HashMap<String,Object>();
 		map.put("id", t.getId());
-		map.put("create_time", t.getCreateTime());
-		map.put("currency_type", t.getCurrencyType());
-		map.put("price", t.getPrice());
-		map.put("num", t.getNum());
-		map.put("status", t.getStatus());
+		map.put("username", t.getUsername());
+		map.put("activie_code", t.getActivieCode());
+		map.put("generate_time", t.getGenerateTime());
+		map.put("use_time", t.getUseTime());
+		map.put("user_username", t.getUserUsername());
+		map.put("isuse", t.getIsuse());
+		map.put("validstatus", t.getValidstatus());
+		map.put("activie_type", t.getActivieType());
 		map.put("inputtime", t.getInputtime());
 		map.put("inserttimeforhis", t.getInserttimeforhis());
 		map.put("operatetimeforhis", t.getOperatetimeforhis());
@@ -140,13 +128,16 @@ public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPrice
 	 * @param t
 	 * @return
 	 */
- 	public String replaceVal(String sql,UsdtPriceEntity t){
+ 	public String replaceVal(String sql,FrontStorageActivatecodeEntity t){
  		sql  = sql.replace("#{id}",String.valueOf(t.getId()));
- 		sql  = sql.replace("#{create_time}",String.valueOf(t.getCreateTime()));
- 		sql  = sql.replace("#{currency_type}",String.valueOf(t.getCurrencyType()));
- 		sql  = sql.replace("#{price}",String.valueOf(t.getPrice()));
- 		sql  = sql.replace("#{num}",String.valueOf(t.getNum()));
- 		sql  = sql.replace("#{status}",String.valueOf(t.getStatus()));
+ 		sql  = sql.replace("#{username}",String.valueOf(t.getUsername()));
+ 		sql  = sql.replace("#{activie_code}",String.valueOf(t.getActivieCode()));
+ 		sql  = sql.replace("#{generate_time}",String.valueOf(t.getGenerateTime()));
+ 		sql  = sql.replace("#{use_time}",String.valueOf(t.getUseTime()));
+ 		sql  = sql.replace("#{user_username}",String.valueOf(t.getUserUsername()));
+ 		sql  = sql.replace("#{isuse}",String.valueOf(t.getIsuse()));
+ 		sql  = sql.replace("#{validstatus}",String.valueOf(t.getValidstatus()));
+ 		sql  = sql.replace("#{activie_type}",String.valueOf(t.getActivieType()));
  		sql  = sql.replace("#{inputtime}",String.valueOf(t.getInputtime()));
  		sql  = sql.replace("#{inserttimeforhis}",String.valueOf(t.getInserttimeforhis()));
  		sql  = sql.replace("#{operatetimeforhis}",String.valueOf(t.getOperatetimeforhis()));
@@ -183,7 +174,7 @@ public class UsdtPriceServiceImpl extends CommonServiceImpl implements UsdtPrice
 				}
 				if(obj instanceof CgformEnhanceJavaInter){
 					CgformEnhanceJavaInter javaInter = (CgformEnhanceJavaInter) obj;
-					javaInter.execute("usdt_price",data);
+					javaInter.execute("front_storage_activatecode",data);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

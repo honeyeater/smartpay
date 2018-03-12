@@ -22,6 +22,7 @@ import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import com.mocott.smp.util.MakeOrderNum;
 import com.mocott.smp.util.OrderConstant;
 import org.apache.log4j.Logger;
+import org.apache.xalan.lib.sql.ObjectArray;
 import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -333,7 +334,7 @@ public class OrderDrawInfoController extends BaseController {
 				String canDraw = this.canDraw(userName, drawType, userMember);
 				j.setMsg(message);
 				j.setSuccess(true);
-				Map<String, Object> attr = new HashMap<>();
+				Map<String, Object> attr = new HashMap<String, Object>();
 				attr.put("canDraw", canDraw);
 				attr.put("userMem", userMember);
 				j.setAttributes(attr);

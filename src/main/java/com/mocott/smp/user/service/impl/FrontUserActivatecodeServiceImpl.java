@@ -1,12 +1,20 @@
 package com.mocott.smp.user.service.impl;
+import com.mocott.smp.base.entity.TSConfigcodeEntity;
+import com.mocott.smp.base.service.TSConfigcodeServiceI;
+import com.mocott.smp.user.entity.FrontStorageActivatecodeEntity;
+import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.service.FrontStorageActivatecodeServiceI;
 import com.mocott.smp.user.service.FrontUserActivatecodeServiceI;
+import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.util.OrderConstant;
+import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.user.entity.FrontUserActivatecodeEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
 import java.io.Serializable;
 import org.jeecgframework.core.util.ApplicationContextUtil;
 import org.jeecgframework.core.util.MyClassLoader;
@@ -17,6 +25,12 @@ import org.jeecgframework.web.cgform.enhance.CgformEnhanceJavaInter;
 @Transactional
 public class FrontUserActivatecodeServiceImpl extends CommonServiceImpl implements FrontUserActivatecodeServiceI {
 
+	@Autowired
+	private FrontStorageActivatecodeServiceI frontStorageActivatecodeService;
+	@Autowired
+	private TSConfigcodeServiceI tsConfigcodeService;
+	@Autowired
+	private FrontUserMemberServiceI frontUserMemberService;
 	
  	public void delete(FrontUserActivatecodeEntity entity) throws Exception{
  		super.delete(entity);
@@ -36,8 +50,83 @@ public class FrontUserActivatecodeServiceImpl extends CommonServiceImpl implemen
  		//执行更新操作增强业务
  		this.doUpdateBus(entity);
  	}
- 	
- 	/**
+
+	/**
+	 * 根据激活码查询激活码信息
+	 * @param activatecode
+	 * @return
+	 * @throws Exception
+     */
+	public List<FrontUserActivatecodeEntity> getByActivateCode(String activatecode) throws Exception {
+		String query = " from FrontUserActivatecodeEntity u where u.activieCode = :activieCode and u.validstatus = '1'";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("activieCode", activatecode);
+		return queryObject.list();
+	}
+
+	/**
+	 * 根据用户名查询激活码信息
+	 * @param userName
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FrontUserActivatecodeEntity> getByUserName(String userName) throws Exception {
+		String query = " from FrontUserActivatecodeEntity u where u.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		return queryObject.list();
+	}
+
+	/**
+	 * 保存激活码
+	 * @param userName
+	 * @param activatecode
+	 * @throws Exception
+     */
+	public void doSave(List<FrontStorageActivatecodeEntity> storageActivateCodes, String userName, String activatecode) throws Exception {
+		Date now = new Date();
+		FrontStorageActivatecodeEntity frontStorageActivatecode = storageActivateCodes.get(0);
+		FrontUserActivatecodeEntity userActivatecode = new FrontUserActivatecodeEntity();
+		userActivatecode.setUsername(userName);
+		userActivatecode.setActivieCode(activatecode);
+		userActivatecode.setUseTime(now);
+		userActivatecode.setUserUsername(userName);
+		userActivatecode.setIsuse("1");
+		userActivatecode.setValidstatus("1");
+		userActivatecode.setActivieType(frontStorageActivatecode.getActivieType());
+		userActivatecode.setInputtime(now);
+		userActivatecode.setInserttimeforhis(now);
+		userActivatecode.setOperatetimeforhis(now);
+
+		frontStorageActivatecode.setUserUsername(userName);
+		frontStorageActivatecode.setIsuse("1");
+		frontStorageActivatecode.setUseTime(now);
+		frontStorageActivatecode.setOperatetimeforhis(now);
+
+		FrontUserMemberEntity userMember = frontUserMemberService.queryEntityByUserName(userName);
+		String activieType = frontStorageActivatecode.getActivieType();
+		if("1".equals(activieType) || "2".equals(activieType)) { //100元类别 500类别
+			TSConfigcodeEntity tsConfigcodeEntity = null;
+			if("1".equals(activieType)) {
+				tsConfigcodeEntity = tsConfigcodeService.getConfigValue(OrderConstant.ActcodeLow);
+			}
+			if("2".equals(activieType)) {
+				tsConfigcodeEntity = tsConfigcodeService.getConfigValue(OrderConstant.ActcodeMed);
+			}
+			if(tsConfigcodeEntity != null) {
+				Double limit = Double.parseDouble(tsConfigcodeEntity.getConfigValue());
+				userMember.setSumLimit(userMember.getSumLimit() + limit);
+				frontUserMemberService.saveOrUpdate(userMember);
+			}
+		}
+
+
+		this.save(userActivatecode);
+		frontStorageActivatecodeService.saveOrUpdate(frontStorageActivatecode);
+	}
+
+
+	/**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

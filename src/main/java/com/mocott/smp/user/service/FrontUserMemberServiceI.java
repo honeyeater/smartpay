@@ -12,6 +12,6 @@ public interface FrontUserMemberServiceI extends CommonService{
  	
  	public void saveOrUpdate(FrontUserMemberEntity entity) throws Exception;
 
-	public FrontUserMemberEntity queryEntityByUserName(String userName);
+	public FrontUserMemberEntity queryEntityByUserName(String userName) throws Exception;
 
 }

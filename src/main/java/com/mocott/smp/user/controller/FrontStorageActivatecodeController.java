@@ -1,19 +1,14 @@
-package com.mocott.smp.feedback.controller;
-import com.mocott.smp.base.model.FeedReplyInfo;
-import com.mocott.smp.base.model.FeedbackInfo;
-import com.mocott.smp.feedback.entity.TSFeedbackEntity;
-import com.mocott.smp.feedback.entity.TSFeedreplyEntity;
-import com.mocott.smp.feedback.service.TSFeedbackServiceI;
-import com.mocott.smp.feedback.service.TSFeedreplyServiceI;
+package com.mocott.smp.user.controller;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.entity.FrontStorageActivatecodeEntity;
+import com.mocott.smp.user.service.FrontStorageActivatecodeServiceI;
 import org.apache.log4j.Logger;
-import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -28,12 +23,14 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
+import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
+import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-
+import org.jeecgframework.core.util.BrowserUtils;
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -42,13 +39,14 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-
+import org.jeecgframework.core.util.ResourceUtil;
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.util.Map;
 import java.util.HashMap;
+import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -62,7 +60,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
 import java.util.Set;
-import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -71,90 +68,38 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**   
  * @Title: Controller  
- * @Description: 系统意见留言信息表
+ * @Description: 激活码信息
  * @author onlineGenerator
- * @date 2018-01-23 11:01:53
+ * @date 2018-03-11 22:34:39
  * @version V1.0   
  *
  */
 @Controller
-@RequestMapping("/tSFeedreplyController")
-public class TSFeedreplyController extends BaseController {
+@RequestMapping("/frontStorageActivatecodeController")
+public class FrontStorageActivatecodeController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	private static final Logger logger = Logger.getLogger(TSFeedreplyController.class);
+	private static final Logger logger = Logger.getLogger(FrontStorageActivatecodeController.class);
 
 	@Autowired
-	private TSFeedreplyServiceI tSFeedreplyService;
+	private FrontStorageActivatecodeServiceI frontStorageActivatecodeService;
 	@Autowired
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-	@Autowired
-	private TSFeedbackServiceI tSFeedbackServiceI;
 	
+
+
 	/**
-	 * 系统意见留言信息表列表 页面跳转
+	 * 激活码信息列表 页面跳转
 	 * 
 	 * @return
 	 */
 	@RequestMapping(params = "list")
 	public ModelAndView list(HttpServletRequest request) {
-		return new ModelAndView("/feedback/tSFeedreplyList");
+		return new ModelAndView("/smp/frontStorageActivatecodeList");
 	}
-
-    /**
-     * 系统留言中心列表 页面跳转
-     *
-     * @return
-     */
-    @RequestMapping(params = "toMessagelist")
-    public ModelAndView toMessagelist(HttpServletRequest request) {
-		HttpSession session = ContextHolderUtils.getSession();
-		FrontUserRegisterEntity frontUserRegisterEntity = (FrontUserRegisterEntity)session.getAttribute("currentUser");
-		try {
-			List<FeedbackInfo> feedbackInfos = new ArrayList<FeedbackInfo>();
-			if(frontUserRegisterEntity != null) {
-				List<TSFeedbackEntity> feedbacks = tSFeedbackServiceI.getFeedbackSByUserName(frontUserRegisterEntity.getUserName());
-				if (feedbacks != null && feedbacks.size() > 0) {
-					for (int i = 0; i < feedbacks.size(); i++) {
-						TSFeedbackEntity feedbackEntity = feedbacks.get(i);
-						FeedbackInfo feedbackInfo = new FeedbackInfo();
-						feedbackInfo.setFeedbackid(feedbackEntity.getFeedbackid());
-						feedbackInfo.setId(feedbackEntity.getId());
-						feedbackInfo.setFeedtime(feedbackEntity.getFeedtime());
-						feedbackInfo.setContent(feedbackEntity.getContent());
-						feedbackInfo.setFeedtype(feedbackEntity.getFeedtype());
-						feedbackInfo.setTitle(feedbackEntity.getTitle());
-						List<TSFeedreplyEntity> tsFeedreplyEntities = tSFeedreplyService.getFeedreplysByFeedBackId(feedbackEntity.getFeedbackid());
-						if(tsFeedreplyEntities != null && tsFeedreplyEntities.size()>0) {
-							feedbackInfo.setIsFeedback("1");
-							List<FeedReplyInfo> feedReplyInfos = new ArrayList<FeedReplyInfo>();
-							for (int j=0; j<tsFeedreplyEntities.size(); j++) {
-								TSFeedreplyEntity tsFeedReply =	tsFeedreplyEntities.get(j);
-								FeedReplyInfo feedReplyInfo = new FeedReplyInfo();
-								feedReplyInfo.setFeedbackid(feedbackEntity.getFeedbackid());
-								feedReplyInfo.setReplyContent(tsFeedReply.getReplyContent());
-								feedReplyInfo.setReplyTime(tsFeedReply.getReplyTime());
-								feedReplyInfos.add(feedReplyInfo);
-							}
-							feedbackInfo.setFeedReplyInfo(feedReplyInfos);
-						} else {
-							feedbackInfo.setIsFeedback("0");
-						}
-
-						feedbackInfos.add(feedbackInfo);
-					}
-				}
-				request.setAttribute("feedbackInfos", feedbackInfos);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-        return new ModelAndView("smp/feedback/messageCenterMain");
-    }
 
 	/**
 	 * easyui AJAX请求数据
@@ -166,38 +111,38 @@ public class TSFeedreplyController extends BaseController {
 	 */
 
 	@RequestMapping(params = "datagrid")
-	public void datagrid(TSFeedreplyEntity tSFeedreply,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
-		CriteriaQuery cq = new CriteriaQuery(TSFeedreplyEntity.class, dataGrid);
+	public void datagrid(FrontStorageActivatecodeEntity frontStorageActivatecode, HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+		CriteriaQuery cq = new CriteriaQuery(FrontStorageActivatecodeEntity.class, dataGrid);
 		//查询条件组装器
-		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, tSFeedreply, request.getParameterMap());
+		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, frontStorageActivatecode, request.getParameterMap());
 		try{
 		//自定义追加查询条件
 		}catch (Exception e) {
 			throw new BusinessException(e.getMessage());
 		}
 		cq.add();
-		this.tSFeedreplyService.getDataGridReturn(cq, true);
+		this.frontStorageActivatecodeService.getDataGridReturn(cq, true);
 		TagUtil.datagrid(response, dataGrid);
 	}
 	
 	/**
-	 * 删除系统意见留言信息表
+	 * 删除激活码信息
 	 * 
 	 * @return
 	 */
 	@RequestMapping(params = "doDel")
 	@ResponseBody
-	public AjaxJson doDel(TSFeedreplyEntity tSFeedreply, HttpServletRequest request) {
+	public AjaxJson doDel(FrontStorageActivatecodeEntity frontStorageActivatecode, HttpServletRequest request) {
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		tSFeedreply = systemService.getEntity(TSFeedreplyEntity.class, tSFeedreply.getId());
-		message = "系统意见留言信息表删除成功";
+		frontStorageActivatecode = systemService.getEntity(FrontStorageActivatecodeEntity.class, frontStorageActivatecode.getId());
+		message = "激活码信息删除成功";
 		try{
-			tSFeedreplyService.delete(tSFeedreply);
+			frontStorageActivatecodeService.delete(frontStorageActivatecode);
 			systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 		}catch(Exception e){
 			e.printStackTrace();
-			message = "系统意见留言信息表删除失败";
+			message = "激活码信息删除失败";
 			throw new BusinessException(e.getMessage());
 		}
 		j.setMsg(message);
@@ -205,7 +150,7 @@ public class TSFeedreplyController extends BaseController {
 	}
 	
 	/**
-	 * 批量删除系统意见留言信息表
+	 * 批量删除激活码信息
 	 * 
 	 * @return
 	 */
@@ -214,18 +159,18 @@ public class TSFeedreplyController extends BaseController {
 	public AjaxJson doBatchDel(String ids,HttpServletRequest request){
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		message = "系统意见留言信息表删除成功";
+		message = "激活码信息删除成功";
 		try{
 			for(String id:ids.split(",")){
-				TSFeedreplyEntity tSFeedreply = systemService.getEntity(TSFeedreplyEntity.class, 
+				FrontStorageActivatecodeEntity frontStorageActivatecode = systemService.getEntity(FrontStorageActivatecodeEntity.class, 
 				id
 				);
-				tSFeedreplyService.delete(tSFeedreply);
+				frontStorageActivatecodeService.delete(frontStorageActivatecode);
 				systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
-			message = "系统意见留言信息表删除失败";
+			message = "激活码信息删除失败";
 			throw new BusinessException(e.getMessage());
 		}
 		j.setMsg(message);
@@ -234,23 +179,23 @@ public class TSFeedreplyController extends BaseController {
 
 
 	/**
-	 * 添加系统意见留言信息表
+	 * 添加激活码信息
 	 * 
 	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doAdd")
 	@ResponseBody
-	public AjaxJson doAdd(TSFeedreplyEntity tSFeedreply, HttpServletRequest request) {
+	public AjaxJson doAdd(FrontStorageActivatecodeEntity frontStorageActivatecode, HttpServletRequest request) {
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		message = "系统意见留言信息表添加成功";
+		message = "激活码信息添加成功";
 		try{
-			tSFeedreplyService.save(tSFeedreply);
+			frontStorageActivatecodeService.save(frontStorageActivatecode);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}catch(Exception e){
 			e.printStackTrace();
-			message = "系统意见留言信息表添加失败";
+			message = "激活码信息添加失败";
 			throw new BusinessException(e.getMessage());
 		}
 		j.setMsg(message);
@@ -258,25 +203,25 @@ public class TSFeedreplyController extends BaseController {
 	}
 	
 	/**
-	 * 更新系统意见留言信息表
+	 * 更新激活码信息
 	 * 
 	 * @param ids
 	 * @return
 	 */
 	@RequestMapping(params = "doUpdate")
 	@ResponseBody
-	public AjaxJson doUpdate(TSFeedreplyEntity tSFeedreply, HttpServletRequest request) {
+	public AjaxJson doUpdate(FrontStorageActivatecodeEntity frontStorageActivatecode, HttpServletRequest request) {
 		String message = null;
 		AjaxJson j = new AjaxJson();
-		message = "系统意见留言信息表更新成功";
-		TSFeedreplyEntity t = tSFeedreplyService.get(TSFeedreplyEntity.class, tSFeedreply.getId());
+		message = "激活码信息更新成功";
+		FrontStorageActivatecodeEntity t = frontStorageActivatecodeService.get(FrontStorageActivatecodeEntity.class, frontStorageActivatecode.getId());
 		try {
-			MyBeanUtils.copyBeanNotNull2Bean(tSFeedreply, t);
-			tSFeedreplyService.saveOrUpdate(t);
+			MyBeanUtils.copyBeanNotNull2Bean(frontStorageActivatecode, t);
+			frontStorageActivatecodeService.saveOrUpdate(t);
 			systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			message = "系统意见留言信息表更新失败";
+			message = "激活码信息更新失败";
 			throw new BusinessException(e.getMessage());
 		}
 		j.setMsg(message);
@@ -285,30 +230,30 @@ public class TSFeedreplyController extends BaseController {
 	
 
 	/**
-	 * 系统意见留言信息表新增页面跳转
+	 * 激活码信息新增页面跳转
 	 * 
 	 * @return
 	 */
 	@RequestMapping(params = "goAdd")
-	public ModelAndView goAdd(TSFeedreplyEntity tSFeedreply, HttpServletRequest req) {
-		if (StringUtil.isNotEmpty(tSFeedreply.getId())) {
-			tSFeedreply = tSFeedreplyService.getEntity(TSFeedreplyEntity.class, tSFeedreply.getId());
-			req.setAttribute("tSFeedreplyPage", tSFeedreply);
+	public ModelAndView goAdd(FrontStorageActivatecodeEntity frontStorageActivatecode, HttpServletRequest req) {
+		if (StringUtil.isNotEmpty(frontStorageActivatecode.getId())) {
+			frontStorageActivatecode = frontStorageActivatecodeService.getEntity(FrontStorageActivatecodeEntity.class, frontStorageActivatecode.getId());
+			req.setAttribute("frontStorageActivatecodePage", frontStorageActivatecode);
 		}
-		return new ModelAndView("/feedback/tSFeedreply-add");
+		return new ModelAndView("/smp/frontStorageActivatecode-add");
 	}
 	/**
-	 * 系统意见留言信息表编辑页面跳转
+	 * 激活码信息编辑页面跳转
 	 * 
 	 * @return
 	 */
 	@RequestMapping(params = "goUpdate")
-	public ModelAndView goUpdate(TSFeedreplyEntity tSFeedreply, HttpServletRequest req) {
-		if (StringUtil.isNotEmpty(tSFeedreply.getId())) {
-			tSFeedreply = tSFeedreplyService.getEntity(TSFeedreplyEntity.class, tSFeedreply.getId());
-			req.setAttribute("tSFeedreplyPage", tSFeedreply);
+	public ModelAndView goUpdate(FrontStorageActivatecodeEntity frontStorageActivatecode, HttpServletRequest req) {
+		if (StringUtil.isNotEmpty(frontStorageActivatecode.getId())) {
+			frontStorageActivatecode = frontStorageActivatecodeService.getEntity(FrontStorageActivatecodeEntity.class, frontStorageActivatecode.getId());
+			req.setAttribute("frontStorageActivatecodePage", frontStorageActivatecode);
 		}
-		return new ModelAndView("/feedback/tSFeedreply-update");
+		return new ModelAndView("/smp/frontStorageActivatecode-update");
 	}
 	
 	/**
@@ -318,7 +263,7 @@ public class TSFeedreplyController extends BaseController {
 	 */
 	@RequestMapping(params = "upload")
 	public ModelAndView upload(HttpServletRequest req) {
-		req.setAttribute("controller_name","tSFeedreplyController");
+		req.setAttribute("controller_name","frontStorageActivatecodeController");
 		return new ModelAndView("common/upload/pub_excel_upload");
 	}
 	
@@ -329,16 +274,16 @@ public class TSFeedreplyController extends BaseController {
 	 * @param response
 	 */
 	@RequestMapping(params = "exportXls")
-	public String exportXls(TSFeedreplyEntity tSFeedreply,HttpServletRequest request,HttpServletResponse response
+	public String exportXls(FrontStorageActivatecodeEntity frontStorageActivatecode,HttpServletRequest request,HttpServletResponse response
 			, DataGrid dataGrid,ModelMap modelMap) {
-		CriteriaQuery cq = new CriteriaQuery(TSFeedreplyEntity.class, dataGrid);
-		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, tSFeedreply, request.getParameterMap());
-		List<TSFeedreplyEntity> tSFeedreplys = this.tSFeedreplyService.getListByCriteriaQuery(cq,false);
-		modelMap.put(NormalExcelConstants.FILE_NAME,"系统意见留言信息表");
-		modelMap.put(NormalExcelConstants.CLASS,TSFeedreplyEntity.class);
-		modelMap.put(NormalExcelConstants.PARAMS,new ExportParams("系统意见留言信息表列表", "导出人:"+ResourceUtil.getSessionUser().getRealName(),
+		CriteriaQuery cq = new CriteriaQuery(FrontStorageActivatecodeEntity.class, dataGrid);
+		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, frontStorageActivatecode, request.getParameterMap());
+		List<FrontStorageActivatecodeEntity> frontStorageActivatecodes = this.frontStorageActivatecodeService.getListByCriteriaQuery(cq,false);
+		modelMap.put(NormalExcelConstants.FILE_NAME,"激活码信息");
+		modelMap.put(NormalExcelConstants.CLASS,FrontStorageActivatecodeEntity.class);
+		modelMap.put(NormalExcelConstants.PARAMS,new ExportParams("激活码信息列表", "导出人:"+ResourceUtil.getSessionUser().getRealName(),
 			"导出信息"));
-		modelMap.put(NormalExcelConstants.DATA_LIST,tSFeedreplys);
+		modelMap.put(NormalExcelConstants.DATA_LIST,frontStorageActivatecodes);
 		return NormalExcelConstants.JEECG_EXCEL_VIEW;
 	}
 	/**
@@ -348,11 +293,11 @@ public class TSFeedreplyController extends BaseController {
 	 * @param response
 	 */
 	@RequestMapping(params = "exportXlsByT")
-	public String exportXlsByT(TSFeedreplyEntity tSFeedreply,HttpServletRequest request,HttpServletResponse response
+	public String exportXlsByT(FrontStorageActivatecodeEntity frontStorageActivatecode,HttpServletRequest request,HttpServletResponse response
 			, DataGrid dataGrid,ModelMap modelMap) {
-    	modelMap.put(NormalExcelConstants.FILE_NAME,"系统意见留言信息表");
-    	modelMap.put(NormalExcelConstants.CLASS,TSFeedreplyEntity.class);
-    	modelMap.put(NormalExcelConstants.PARAMS,new ExportParams("系统意见留言信息表列表", "导出人:"+ResourceUtil.getSessionUser().getRealName(),
+    	modelMap.put(NormalExcelConstants.FILE_NAME,"激活码信息");
+    	modelMap.put(NormalExcelConstants.CLASS,FrontStorageActivatecodeEntity.class);
+    	modelMap.put(NormalExcelConstants.PARAMS,new ExportParams("激活码信息列表", "导出人:"+ResourceUtil.getSessionUser().getRealName(),
     	"导出信息"));
     	modelMap.put(NormalExcelConstants.DATA_LIST,new ArrayList());
     	return NormalExcelConstants.JEECG_EXCEL_VIEW;
@@ -373,9 +318,9 @@ public class TSFeedreplyController extends BaseController {
 			params.setHeadRows(1);
 			params.setNeedSave(true);
 			try {
-				List<TSFeedreplyEntity> listTSFeedreplyEntitys = ExcelImportUtil.importExcel(file.getInputStream(),TSFeedreplyEntity.class,params);
-				for (TSFeedreplyEntity tSFeedreply : listTSFeedreplyEntitys) {
-					tSFeedreplyService.save(tSFeedreply);
+				List<FrontStorageActivatecodeEntity> listFrontStorageActivatecodeEntitys = ExcelImportUtil.importExcel(file.getInputStream(),FrontStorageActivatecodeEntity.class,params);
+				for (FrontStorageActivatecodeEntity frontStorageActivatecode : listFrontStorageActivatecodeEntitys) {
+					frontStorageActivatecodeService.save(frontStorageActivatecode);
 				}
 				j.setMsg("文件导入成功！");
 			} catch (Exception e) {
@@ -394,15 +339,15 @@ public class TSFeedreplyController extends BaseController {
 	
 	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
-	public List<TSFeedreplyEntity> list() {
-		List<TSFeedreplyEntity> listTSFeedreplys=tSFeedreplyService.getList(TSFeedreplyEntity.class);
-		return listTSFeedreplys;
+	public List<FrontStorageActivatecodeEntity> list() {
+		List<FrontStorageActivatecodeEntity> listFrontStorageActivatecodes=frontStorageActivatecodeService.getList(FrontStorageActivatecodeEntity.class);
+		return listFrontStorageActivatecodes;
 	}
 	
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<?> get(@PathVariable("id") String id) {
-		TSFeedreplyEntity task = tSFeedreplyService.get(TSFeedreplyEntity.class, id);
+		FrontStorageActivatecodeEntity task = frontStorageActivatecodeService.get(FrontStorageActivatecodeEntity.class, id);
 		if (task == null) {
 			return new ResponseEntity(HttpStatus.NOT_FOUND);
 		}
@@ -411,23 +356,23 @@ public class TSFeedreplyController extends BaseController {
 
 	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public ResponseEntity<?> create(@RequestBody TSFeedreplyEntity tSFeedreply, UriComponentsBuilder uriBuilder) {
+	public ResponseEntity<?> create(@RequestBody FrontStorageActivatecodeEntity frontStorageActivatecode, UriComponentsBuilder uriBuilder) {
 		//调用JSR303 Bean Validator进行校验，如果出错返回含400错误码及json格式的错误信息.
-		Set<ConstraintViolation<TSFeedreplyEntity>> failures = validator.validate(tSFeedreply);
+		Set<ConstraintViolation<FrontStorageActivatecodeEntity>> failures = validator.validate(frontStorageActivatecode);
 		if (!failures.isEmpty()) {
 			return new ResponseEntity(BeanValidators.extractPropertyAndMessage(failures), HttpStatus.BAD_REQUEST);
 		}
 
 		//保存
 		try{
-			tSFeedreplyService.save(tSFeedreply);
+			frontStorageActivatecodeService.save(frontStorageActivatecode);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
 		}
 		//按照Restful风格约定，创建指向新任务的url, 也可以直接返回id或对象.
-		String id = tSFeedreply.getId();
-		URI uri = uriBuilder.path("/rest/tSFeedreplyController/" + id).build().toUri();
+		String id = frontStorageActivatecode.getId();
+		URI uri = uriBuilder.path("/rest/frontStorageActivatecodeController/" + id).build().toUri();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setLocation(uri);
 
@@ -435,16 +380,16 @@ public class TSFeedreplyController extends BaseController {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> update(@RequestBody TSFeedreplyEntity tSFeedreply) {
+	public ResponseEntity<?> update(@RequestBody FrontStorageActivatecodeEntity frontStorageActivatecode) {
 		//调用JSR303 Bean Validator进行校验，如果出错返回含400错误码及json格式的错误信息.
-		Set<ConstraintViolation<TSFeedreplyEntity>> failures = validator.validate(tSFeedreply);
+		Set<ConstraintViolation<FrontStorageActivatecodeEntity>> failures = validator.validate(frontStorageActivatecode);
 		if (!failures.isEmpty()) {
 			return new ResponseEntity(BeanValidators.extractPropertyAndMessage(failures), HttpStatus.BAD_REQUEST);
 		}
 
 		//保存
 		try{
-			tSFeedreplyService.saveOrUpdate(tSFeedreply);
+			frontStorageActivatecodeService.saveOrUpdate(frontStorageActivatecode);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
@@ -457,6 +402,6 @@ public class TSFeedreplyController extends BaseController {
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable("id") String id) {
-		tSFeedreplyService.deleteEntityById(TSFeedreplyEntity.class, id);
+		frontStorageActivatecodeService.deleteEntityById(FrontStorageActivatecodeEntity.class, id);
 	}
 }

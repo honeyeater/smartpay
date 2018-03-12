@@ -1,13 +1,17 @@
 package com.mocott.smp.user.controller;
+import com.mocott.smp.user.entity.FrontStorageActivatecodeEntity;
 import com.mocott.smp.user.entity.FrontUserActivatecodeEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
+import com.mocott.smp.user.service.FrontStorageActivatecodeServiceI;
 import com.mocott.smp.user.service.FrontUserActivatecodeServiceI;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,14 +26,12 @@ import org.jeecgframework.core.common.model.common.TreeChildCount;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
 import java.io.OutputStream;
-import org.jeecgframework.core.util.BrowserUtils;
+
 import org.jeecgframework.poi.excel.ExcelExportUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -38,14 +40,11 @@ import org.jeecgframework.poi.excel.entity.TemplateExportParams;
 import org.jeecgframework.poi.excel.entity.vo.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.vo.TemplateExcelConstants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.jeecgframework.core.util.ResourceUtil;
+
 import java.io.IOException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import java.util.Map;
-import java.util.HashMap;
-import org.jeecgframework.core.util.ExceptionUtil;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,7 +57,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
-import java.util.Set;
+
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.net.URI;
@@ -87,7 +86,8 @@ public class FrontUserActivatecodeController extends BaseController {
 	private SystemService systemService;
 	@Autowired
 	private Validator validator;
-
+	@Autowired
+	private FrontStorageActivatecodeServiceI frontStorageActivatecodeService;
 
     /**
      * 用户激活码信息表列表 页面跳转
@@ -96,19 +96,71 @@ public class FrontUserActivatecodeController extends BaseController {
      */
     @RequestMapping(params = "list")
     public ModelAndView list(HttpServletRequest request) {
-        return new ModelAndView("/user/frontUserActivatecodeList");
+		FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+		try {
+			List<FrontUserActivatecodeEntity> userActivatecodes = frontUserActivatecodeService.getByUserName(frontUser.getUserName());
+			request.setAttribute("userActivates", userActivatecodes);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ModelAndView("smp/user/activateCodeMain");
     }
 
 
-    /**
-	 * 激活码管理页面
-	 * 
+//    /**
+//	 * 激活码管理页面
+//	 *
+//	 * @return
+//	 */
+//	@RequestMapping(params = "activatecode")
+//	public ModelAndView activatecode(HttpServletRequest request) {
+//		FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+//		try {
+//			List<FrontUserActivatecodeEntity> userActivatecodes = frontUserActivatecodeService.getByUserName(frontUser.getUserName());
+//			request.setAttribute("userActivates", userActivatecodes);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return new ModelAndView("smp/user/activateCodeMain");
+//	}
+
+	/**
+	 * 用户激活码激活
+	 *
 	 * @return
 	 */
-	@RequestMapping(params = "activatecode")
-	public ModelAndView activatecode(HttpServletRequest request) {
-		return new ModelAndView("smp/user/activateCodeMain");
+	@RequestMapping(params = "doAct")
+	@ResponseBody
+	public AjaxJson doAct(HttpServletRequest request) {
+		String message = null;
+		AjaxJson j = new AjaxJson();
+		message = "用户信息已激活,请继续操作!";
+		try{
+			String activatecode = request.getParameter("activatecode");
+			List<FrontUserActivatecodeEntity> userActivatecodes = frontUserActivatecodeService.getByActivateCode(activatecode);
+			List<FrontStorageActivatecodeEntity> storageActivateCodes = frontStorageActivatecodeService.getByActivateCode(activatecode);
+			FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+			if(userActivatecodes != null && userActivatecodes.size()>0) {
+				message = "此激活码已使用,请确认或再次购买!";
+				j.setSuccess(false);
+			} else if(storageActivateCodes == null || storageActivateCodes.size()<=0) {
+				message = "此激活码错误或无效,请核实!";
+				j.setSuccess(false);
+			} else {
+				frontUserActivatecodeService.doSave(storageActivateCodes, frontUser.getUserName(), activatecode);
+			}
+
+			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+		}catch(Exception e){
+			e.printStackTrace();
+			message = "用户激活失败,请检查激活码或稍后重试!";
+			j.setSuccess(false);
+		}
+		j.setMsg(message);
+		return j;
 	}
+
+
 
 	/**
 	 * easyui AJAX请求数据
@@ -345,72 +397,5 @@ public class FrontUserActivatecodeController extends BaseController {
 		}
 		return j;
 	}
-	
-	@RequestMapping(method = RequestMethod.GET)
-	@ResponseBody
-	public List<FrontUserActivatecodeEntity> list() {
-		List<FrontUserActivatecodeEntity> listFrontUserActivatecodes=frontUserActivatecodeService.getList(FrontUserActivatecodeEntity.class);
-		return listFrontUserActivatecodes;
-	}
-	
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	@ResponseBody
-	public ResponseEntity<?> get(@PathVariable("id") String id) {
-		FrontUserActivatecodeEntity task = frontUserActivatecodeService.get(FrontUserActivatecodeEntity.class, id);
-		if (task == null) {
-			return new ResponseEntity(HttpStatus.NOT_FOUND);
-		}
-		return new ResponseEntity(task, HttpStatus.OK);
-	}
 
-	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	public ResponseEntity<?> create(@RequestBody FrontUserActivatecodeEntity frontUserActivatecode, UriComponentsBuilder uriBuilder) {
-		//调用JSR303 Bean Validator进行校验，如果出错返回含400错误码及json格式的错误信息.
-		Set<ConstraintViolation<FrontUserActivatecodeEntity>> failures = validator.validate(frontUserActivatecode);
-		if (!failures.isEmpty()) {
-			return new ResponseEntity(BeanValidators.extractPropertyAndMessage(failures), HttpStatus.BAD_REQUEST);
-		}
-
-		//保存
-		try{
-			frontUserActivatecodeService.save(frontUserActivatecode);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity(HttpStatus.NO_CONTENT);
-		}
-		//按照Restful风格约定，创建指向新任务的url, 也可以直接返回id或对象.
-		String id = frontUserActivatecode.getId();
-		URI uri = uriBuilder.path("/rest/frontUserActivatecodeController/" + id).build().toUri();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setLocation(uri);
-
-		return new ResponseEntity(headers, HttpStatus.CREATED);
-	}
-
-	@RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> update(@RequestBody FrontUserActivatecodeEntity frontUserActivatecode) {
-		//调用JSR303 Bean Validator进行校验，如果出错返回含400错误码及json格式的错误信息.
-		Set<ConstraintViolation<FrontUserActivatecodeEntity>> failures = validator.validate(frontUserActivatecode);
-		if (!failures.isEmpty()) {
-			return new ResponseEntity(BeanValidators.extractPropertyAndMessage(failures), HttpStatus.BAD_REQUEST);
-		}
-
-		//保存
-		try{
-			frontUserActivatecodeService.saveOrUpdate(frontUserActivatecode);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity(HttpStatus.NO_CONTENT);
-		}
-
-		//按Restful约定，返回204状态码, 无内容. 也可以返回200状态码.
-		return new ResponseEntity(HttpStatus.NO_CONTENT);
-	}
-
-	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@PathVariable("id") String id) {
-		frontUserActivatecodeService.deleteEntityById(FrontUserActivatecodeEntity.class, id);
-	}
 }

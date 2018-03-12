@@ -47,7 +47,7 @@ public class FrontUserMemberServiceImpl extends CommonServiceImpl implements Fro
 	 * @return
      */
 	@Override
-	public FrontUserMemberEntity queryEntityByUserName(String userName) {
+	public FrontUserMemberEntity queryEntityByUserName(String userName) throws Exception{
 		String query = " from FrontUserMemberEntity o where o.username = :userName";
 		Query queryObject = getSession().createQuery(query);
 		queryObject.setParameter("userName", userName);

@@ -211,7 +211,7 @@ public class TSFeedbackController extends BaseController {
 			String filePaths = request.getParameter("img_1_d");
 			if(StringUtil.isNotEmpty(filePaths)) {
 				String[] files = filePaths.split(";");
-				List<TSFeedattachEntity> feedbackList = new ArrayList<>();
+				List<TSFeedattachEntity> feedbackList = new ArrayList<TSFeedattachEntity>();
 				for(int i=0; i<files.length; i++) {
 					TSFeedattachEntity feedAttachEntity = new TSFeedattachEntity();
 					feedAttachEntity.setFeedbackid(tSFeedback.getFeedbackid());

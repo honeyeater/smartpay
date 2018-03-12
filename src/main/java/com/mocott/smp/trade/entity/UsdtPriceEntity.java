@@ -33,8 +33,8 @@ public class UsdtPriceEntity implements java.io.Serializable {
 	/**ID*/
 	private String id;
 	/**生成日期*/
-	@Excel(name="生成日期",width=15)
-	private String createTime;
+	@Excel(name="生成日期",width=15,format = "yyyy-MM-dd")
+	private java.util.Date createTime;
 	/**货币类型*/
 	@Excel(name="货币类型",width=15)
 	private String currencyType;
@@ -124,8 +124,8 @@ public class UsdtPriceEntity implements java.io.Serializable {
 	 *@return: java.lang.String  生成日期
 	 */
 
-	@Column(name ="CREATE_TIME",nullable=true,length=32)
-	public String getCreateTime(){
+	@Column(name ="CREATE_TIME",nullable=true)
+	public java.util.Date getCreateTime(){
 		return this.createTime;
 	}
 
@@ -133,9 +133,10 @@ public class UsdtPriceEntity implements java.io.Serializable {
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  生成日期
 	 */
-	public void setCreateTime(String createTime){
+	public void setCreateTime(java.util.Date createTime){
 		this.createTime = createTime;
 	}
+
 	/**
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  货币类型

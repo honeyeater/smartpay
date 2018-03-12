@@ -60,8 +60,16 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
         usdtTradeEntity.setPrice(Double.parseDouble(usdtTradeInfo.getBuyprice()));
         usdtTradeEntity.setNum(Double.parseDouble(usdtTradeInfo.getBuynum()));
         usdtTradeEntity.setMoney(Double.parseDouble(usdtTradeInfo.getBuysumamount()));
-        usdtTradeEntity.setFeeRate(Double.parseDouble(usdtTradeInfo.getBuyfeerate()));
-        usdtTradeEntity.setFee(Double.parseDouble(usdtTradeInfo.getBuyfee()));
+		if(StringUtil.isNotEmpty(usdtTradeInfo.getBuyfeerate())) {
+			usdtTradeEntity.setFeeRate(Double.parseDouble(usdtTradeInfo.getBuyfeerate()));
+		} else {
+			usdtTradeEntity.setFeeRate(0.00);
+		}
+		if(StringUtil.isNotEmpty(usdtTradeInfo.getBuyfee())) {
+			usdtTradeEntity.setFee(Double.parseDouble(usdtTradeInfo.getBuyfee()));
+		} else {
+			usdtTradeEntity.setFee(0.00);
+		}
         usdtTradeEntity.setStatus("0"); //待审核
         usdtTradeEntity.setTradeType("1"); //1-买入 2-卖出
         usdtTradeEntity.setInputtime(now);
@@ -95,7 +103,15 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
                 userUsdtInfoEntity.setNum(num);
                 userUsdtInfoEntity.setOperatetimeforhis(now);
                 userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
-            }
+            } else {
+				userUsdtInfoEntity = new UserUsdtInfoEntity();
+				userUsdtInfoEntity.setUsername(usdtTradeEntity.getUsername());
+				userUsdtInfoEntity.setNum(usdtTradeEntity.getNum());
+				userUsdtInfoEntity.setInserttimeforhis(now);
+				userUsdtInfoEntity.setInputtime(now);
+				userUsdtInfoEntity.setOperatetimeforhis(now);
+				userUsdtInfoService.save(userUsdtInfoEntity);
+			}
         }
     }
 
@@ -141,7 +157,11 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
         usdtTradeEntity.setCurrencyType("USDT");
         usdtTradeEntity.setPrice(Double.parseDouble(usdtTradeInfo.getSaleprice()));
         usdtTradeEntity.setNum(Double.parseDouble(usdtTradeInfo.getSalenum()));
-        usdtTradeEntity.setMoney(Double.parseDouble(usdtTradeInfo.getSalesumamount()));
+		if(usdtTradeInfo.getSalesumamount() != null) {
+			usdtTradeEntity.setMoney(Double.parseDouble(usdtTradeInfo.getSalesumamount()));
+		} else {
+			usdtTradeEntity.setMoney(0.00);
+		}
         usdtTradeEntity.setFeeRate(Double.parseDouble(usdtTradeInfo.getSalefeerate()));
         usdtTradeEntity.setFee(Double.parseDouble(usdtTradeInfo.getSalefee()));
         usdtTradeEntity.setDrawUrl(usdtTradeInfo.getSaledrawurl());

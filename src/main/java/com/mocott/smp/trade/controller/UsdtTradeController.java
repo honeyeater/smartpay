@@ -1,15 +1,24 @@
 package com.mocott.smp.trade.controller;
 
+import com.mocott.smp.base.entity.TSConfigcodeEntity;
+import com.mocott.smp.base.service.TSConfigcodeServiceI;
+import com.mocott.smp.trade.entity.UsdtPriceEntity;
 import com.mocott.smp.trade.entity.UsdtTradeEntity;
+import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
 import com.mocott.smp.trade.model.UsdtTradeInfo;
+import com.mocott.smp.trade.service.UsdtPriceServiceI;
 import com.mocott.smp.trade.service.UsdtTradeServiceI;
+import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
+import com.mocott.smp.trade.service.impl.UsdtPriceServiceImpl;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserRegisterServiceI;
+import com.mocott.smp.util.OrderConstant;
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.beanvalidator.BeanValidators;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.exception.BusinessException;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
+import org.jeecgframework.core.common.hibernate.qbc.PageList;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
@@ -68,6 +77,12 @@ public class UsdtTradeController extends BaseController {
 	private Validator validator;
     @Autowired
     private FrontUserRegisterServiceI frontUserRegisterService;
+	@Autowired
+	private UsdtPriceServiceI usdtPriceService;
+	@Autowired
+	private UserUsdtInfoServiceI userUsdtInfoService;
+	@Autowired
+	private TSConfigcodeServiceI tsConfigcodeService;
 
 	/**
 	 * USDT交易 页面跳转
@@ -76,6 +91,24 @@ public class UsdtTradeController extends BaseController {
 	 */
 	@RequestMapping(params = "toTrade")
 	public ModelAndView toTrade(HttpServletRequest request) {
+		// 获取当天的交易价格
+		try {
+			FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
+			String userName = frontUser.getUserName();
+			UsdtPriceEntity usdtPrice = usdtPriceService.getNewPrice();
+			UserUsdtInfoEntity usdtInfoEntity = userUsdtInfoService.queryUserUsdtByUserName(userName);
+			String feerate = "1";
+			TSConfigcodeEntity tsConfigcode = tsConfigcodeService.getConfigValue(OrderConstant.FeeRate);
+			if(tsConfigcode != null) {
+				feerate = tsConfigcode.getConfigValue();
+			}
+			request.setAttribute("feerate", feerate);
+			request.setAttribute("userUsdtInfo", usdtInfoEntity);
+			request.setAttribute("usdtPrice", usdtPrice);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return new ModelAndView("smp/trade/tradeCenterMain");
 	}
 
@@ -90,7 +123,7 @@ public class UsdtTradeController extends BaseController {
     public AjaxJson doBuy(UsdtTradeInfo usdtTradeInfo, HttpServletRequest request) {
         String message = null;
         AjaxJson j = new AjaxJson();
-        message = "USDT买入成功";
+        message = "USDT买入申请成功,待系统确认后冲入账户";
         try{
             String safePwd = request.getParameter("buysafepwd"); //安全密码
             String buyprice = request.getParameter("buyprice"); //买入价格
@@ -105,20 +138,27 @@ public class UsdtTradeController extends BaseController {
             String userName = frontUser.getUserName();
             String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
             FrontUserRegisterEntity userRegister = frontUserRegisterService.queryEntityByUserName(userName);
+			UsdtPriceEntity usdtPriceEntity = usdtPriceService.getNewPrice();
+			Double newPrice = usdtPriceEntity.getPrice();
+
             // 买入校验
             if(StringUtil.isEmpty(safePwd)) {
                 message = "安全密码为空，请确认!";
                 j.setSuccess(false);
             } else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
-                j.setMsg("您输入的安全密码错误,请确认!");
+				message = "您输入的安全密码错误,请确认!";
                 j.setSuccess(false);
-            } else if(StringUtil.isNotEmpty(buynum) && Double.parseDouble(buynum)<= 0) {
+            } else if(StringUtil.isEmpty(buynum) || Double.parseDouble(buynum)<= 0) {
                 message = "买入数量为空或为零，请确认!";
                 j.setSuccess(false);
-            } else if(StringUtil.isNotEmpty(buyprice)) {
+            } else if(StringUtil.isEmpty(buyprice)) {
                 message = "买入价格为空，请确认!";
                 j.setSuccess(false);
-            } else{
+            } else if(newPrice != Double.parseDouble(buyprice)) {
+				message = "买入价格与最新价格不符合,请刷新页面重试!";
+				j.setSuccess(false);
+			} else{
+				usdtTradeInfo.setUserName(userName);
                 usdtTradeService.saveBuy(usdtTradeInfo);
                 j.setSuccess(true);
             }
@@ -126,9 +166,9 @@ public class UsdtTradeController extends BaseController {
             systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
         }catch(Exception e){
             e.printStackTrace();
-            message = "USDT买入成功";
+            message = "USDT买入失败,请稍后重试!";
             j.setSuccess(false);
-            throw new BusinessException(e.getMessage());
+//            throw new BusinessException(e.getMessage());
         }
         j.setMsg(message);
         return j;
@@ -152,27 +192,37 @@ public class UsdtTradeController extends BaseController {
             String salefee = request.getParameter("salefee"); //卖出费用
             String salefeerate = request.getParameter("salefeerate"); //卖出费用比例
             String salesumamount = request.getParameter("salesumamount"); //卖出总金额
-            String saledrawurl = request.getParameter(""); //提出地址
+            String saledrawurl = request.getParameter("saledrawurl"); //提出地址
 
             FrontUserRegisterEntity frontUser = ResourceUtil.getSessionFrontUser();
             String userName = frontUser.getUserName();
             String pSaftString = PasswordUtil.encrypt(userName, safePwd, PasswordUtil.getStaticSalt());
             FrontUserRegisterEntity userRegister = frontUserRegisterService.queryEntityByUserName(userName);
+			UserUsdtInfoEntity userUsdtInfo = userUsdtInfoService.queryUserUsdtByUserName(userName);
+			UsdtPriceEntity usdtPriceEntity = usdtPriceService.getNewPrice();
+			Double newPrice = usdtPriceEntity.getPrice();
             // 买入校验
             if(StringUtil.isEmpty(safePwd)) {
                 message = "安全密码为空，请确认!";
                 j.setSuccess(false);
             } else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
-                j.setMsg("您输入的安全密码错误,请确认!");
+				message = "您输入的安全密码错误,请确认!";
                 j.setSuccess(false);
-            } else if(StringUtil.isNotEmpty(salenum) && Double.parseDouble(salenum)<= 0) {
-                message = "买入数量为空或为零，请确认!";
+            } else if(StringUtil.isEmpty(salenum) || Double.parseDouble(salenum)<= 0) {
+                message = "卖出数量为空或为零，请确认!";
                 j.setSuccess(false);
-            } else if(StringUtil.isNotEmpty(saleprice)) {
-                message = "买入价格为空，请确认!";
+            } else if(StringUtil.isEmpty(saleprice)) {
+                message = "卖出价格为空，请确认!";
                 j.setSuccess(false);
-            } else{
-                usdtTradeService.saveBuy(usdtTradeInfo);
+            } else if(userUsdtInfo !=null && userUsdtInfo.getNum()> Double.parseDouble(salenum)) {
+				message = "卖出数量超出账户数量,请确认!";
+				j.setSuccess(false);
+			} else if(newPrice != Double.parseDouble(saleprice)) {
+				message = "卖出价格与最新价格不符合,请刷新页面重试!";
+				j.setSuccess(false);
+			} else{
+				usdtTradeInfo.setUserName(userName);
+                usdtTradeService.saveSale(usdtTradeInfo);
                 j.setSuccess(true);
             }
 
@@ -181,7 +231,6 @@ public class UsdtTradeController extends BaseController {
             e.printStackTrace();
             message = "USDT卖出申请失败，请稍后重试或联系客服!";
             j.setSuccess(false);
-            throw new BusinessException(e.getMessage());
         }
         j.setMsg(message);
         return j;

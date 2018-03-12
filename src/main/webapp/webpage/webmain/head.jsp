@@ -29,7 +29,7 @@
                            role="button" aria-expanded="true" aria-haspopup="true">会员中心</a>
                         <ul class="dropdown-menu dropdown-menu-left">
                             <li><a href="frontUserRegisterController.do?tousergeneral">会员注册</a></li>
-                            <li><a href="frontUserActivatecodeController.do?activatecode">激活码管理</a></li>
+                            <li><a href="frontUserActivatecodeController.do?list">激活码管理</a></li>
                         </ul>
                     </li>
                     <li><a href="usdtTradeController.do?toTrade">交易中心</a></li>

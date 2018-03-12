@@ -3,6 +3,8 @@ import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
 import com.mocott.smp.base.entity.TSConfigcodeEntity;
 import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
 import com.mocott.smp.base.service.TSConfigcodeServiceI;
+import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
+import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
@@ -104,6 +106,8 @@ public class FrontUserRegisterController extends BaseController {
 	private TSConfigcodeServiceI tsConfigcodeServiceI;
 	@Autowired
 	private FrontUserMemberServiceI frontUserMemberServiceI;
+	@Autowired
+	private UserUsdtInfoServiceI userUsdtInfoServiceI;
 
     /**
      * 用户注册页面跳转
@@ -411,9 +415,24 @@ public class FrontUserRegisterController extends BaseController {
 						}
 					}
 				}
+				// 设置用户usdt账户信息
+				UserUsdtInfoEntity userUsdtInfoEntity = new UserUsdtInfoEntity();
+				userUsdtInfoEntity.setUsername(frontUserRegister.getUserName());
+				userUsdtInfoEntity.setUserLevel(frontUserRegister.getUserLevel());
+				userUsdtInfoEntity.setSumAmount(0.00);
+				userUsdtInfoEntity.setCurrencyType("USDT");
+				userUsdtInfoEntity.setNum(0.00);
+				userUsdtInfoEntity.setForzenNum(0.00);
+				userUsdtInfoEntity.setIntoUrl("");
+				userUsdtInfoEntity.setCnyAmount(0.00);
+				userUsdtInfoEntity.setForzenAmount(0.00);
+				userUsdtInfoEntity.setInputtime(now);
+				userUsdtInfoEntity.setInserttimeforhis(now);
+				userUsdtInfoEntity.setOperatetimeforhis(now);
 
 				frontUserRegisterService.save(frontUserRegister);
 				frontUserMemberServiceI.save(frontUserMember);
+				userUsdtInfoServiceI.save(userUsdtInfoEntity);
 				fvc.setUserTime(new Date());
 				fvc.setIsuse("1");
 				frontVerifyCodeService.saveOrUpdate(fvc);

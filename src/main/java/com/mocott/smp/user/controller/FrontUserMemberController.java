@@ -122,7 +122,7 @@ public class FrontUserMemberController extends BaseController {
 		}
 		List<FrontUserRegisterEntity> childUsers = frontUserRegisterServiceI.getChildUserByIntro(registerUserInfo.getUserName());
 		if(childUsers != null && childUsers.size() > 0) {
-			List<RegisterUserInfo> userInfos = new ArrayList<>();
+			List<RegisterUserInfo> userInfos = new ArrayList<RegisterUserInfo>();
 			for(int i=0; i<childUsers.size(); i++) {
 				FrontUserRegisterEntity userRegisterEntity = childUsers.get(i);
 				RegisterUserInfo registerUserInfo2 = new RegisterUserInfo();

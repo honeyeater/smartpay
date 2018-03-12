@@ -48,11 +48,11 @@ public class FrontUserActivatecodeEntity implements java.io.Serializable {
     @Excel(name="使用人",width=15)
 	private java.lang.String userUsername;
 	/**是否使用*/
-    @Excel(name="是否使用",width=15,format = "yyyy-MM-dd")
-	private java.util.Date isuse;
+    @Excel(name="是否使用",width=15)
+	private java.lang.String isuse;
 	/**是否有效*/
-    @Excel(name="是否有效",width=15,format = "yyyy-MM-dd")
-	private java.util.Date validstatus;
+    @Excel(name="是否有效",width=15)
+	private java.lang.String validstatus;
 	/**激活码类型*/
     @Excel(name="激活码类型",width=15)
 	private java.lang.String activieType;
@@ -212,7 +212,7 @@ public class FrontUserActivatecodeEntity implements java.io.Serializable {
 	 *@return: java.util.Date  是否使用
 	 */
 	@Column(name ="ISUSE",nullable=true)
-	public java.util.Date getIsuse(){
+	public java.lang.String getIsuse(){
 		return this.isuse;
 	}
 
@@ -220,7 +220,7 @@ public class FrontUserActivatecodeEntity implements java.io.Serializable {
 	 *方法: 设置java.util.Date
 	 *@param: java.util.Date  是否使用
 	 */
-	public void setIsuse(java.util.Date isuse){
+	public void setIsuse(java.lang.String isuse){
 		this.isuse = isuse;
 	}
 	/**
@@ -228,7 +228,7 @@ public class FrontUserActivatecodeEntity implements java.io.Serializable {
 	 *@return: java.util.Date  是否有效
 	 */
 	@Column(name ="VALIDSTATUS",nullable=true)
-	public java.util.Date getValidstatus(){
+	public java.lang.String getValidstatus(){
 		return this.validstatus;
 	}
 
@@ -236,7 +236,7 @@ public class FrontUserActivatecodeEntity implements java.io.Serializable {
 	 *方法: 设置java.util.Date
 	 *@param: java.util.Date  是否有效
 	 */
-	public void setValidstatus(java.util.Date validstatus){
+	public void setValidstatus(java.lang.String validstatus){
 		this.validstatus = validstatus;
 	}
 	/**

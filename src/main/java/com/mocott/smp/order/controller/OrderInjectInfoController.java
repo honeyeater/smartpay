@@ -718,14 +718,14 @@ public class OrderInjectInfoController extends BaseController {
 			return j;
 		}
 		String userName = frontUser.getUserName();
-		FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
-		if(userMember == null) {
-			message = "用户状态异常,请联系管理员!";
-			j.setMsg(message);
-			j.setSuccess(false);
-			return j;
-		}
 		try {
+			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
+			if(userMember == null) {
+				message = "用户状态异常,请联系管理员!";
+				j.setMsg(message);
+				j.setSuccess(false);
+				return j;
+			}
 			String orderCode = request.getParameter("payOrderCode");
 			String orderType = null;
 			List<OrderInjectInfoEntity> undoneList = orderInjectInfoService.getUndoneList(userName);
