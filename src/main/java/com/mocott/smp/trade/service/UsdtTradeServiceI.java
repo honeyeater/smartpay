@@ -17,4 +17,6 @@ public interface UsdtTradeServiceI extends CommonService{
     public void saveBuy(UsdtTradeInfo usdtTradeInfo) throws Exception;
 
 	public void saveSale(UsdtTradeInfo usdtTradeInfo) throws Exception;
+
+
 }

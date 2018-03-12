@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserRegisterServiceI;
+import com.mocott.smp.util.SmsSendUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.util.*;
@@ -132,17 +133,22 @@ public class FrontVerifyCodeController extends BaseController {
 					frontVerifyCodeEntity.setIsuse("0");
 					frontVerifyCodeEntity.setValidCode(verifyCode+"");
 					frontVerifyCodeEntity.setType("1"); //1-注册验证码
-					String sendContent = "金润理财平台注册短信验证码:" + verifyCode + ",请再三分钟内使用。";
+					String sendContent = "【JR平台】尊敬的客户，您的验证码:" + verifyCode + ",请于3分钟内正确输入";
 					frontVerifyCodeEntity.setSendTime(new Date());
 					frontVerifyCodeEntity.setSendContent(sendContent);
 					//发送短信
-					// TODO: 2018/2/18
-
-					frontVerifyCodeService.save(frontVerifyCodeEntity);
-					message = "短信发送成功";
-					systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
-					j.setMsg(message);
-					j.setSuccess(true);
+                    //发送短信
+                    String result = SmsSendUtil.send(sendContent, phoneNo);
+                    if("0".equals(result)) {
+                        frontVerifyCodeService.save(frontVerifyCodeEntity);
+                        message = "短信发送成功";
+                        j.setMsg(message);
+                        j.setSuccess(true);
+                    } else {
+                        message = "短信发送失败，请稍后重试!";
+                        j.setMsg(message);
+                        j.setSuccess(false);
+                    }
 				}
 			} else {
 				j.setMsg("手机号码为空,请输入后重试");
@@ -197,16 +203,22 @@ public class FrontVerifyCodeController extends BaseController {
 					frontVerifyCodeEntity.setIsuse("0");
 					frontVerifyCodeEntity.setValidCode(verifyCode+"");
 					frontVerifyCodeEntity.setType("2"); //1-提取验证码
-					String sendContent = "金润理财平台注册短信验证码:" + verifyCode + ",请在三分钟内使用!";
+					String sendContent = "【JR平台】尊敬的客户，您的验证码:" + verifyCode + ",请于3分钟内正确输入";
 					frontVerifyCodeEntity.setSendTime(new Date());
 					frontVerifyCodeEntity.setSendContent(sendContent);
 					//发送短信
-					// TODO: 2018/2/18
-					frontVerifyCodeService.save(frontVerifyCodeEntity);
-					message = "短信发送成功";
+                    String result = SmsSendUtil.send(sendContent, phoneNo);
+                    if("0".equals(result)) {
+                        frontVerifyCodeService.save(frontVerifyCodeEntity);
+                        message = "短信发送成功";
+                        j.setMsg(message);
+                        j.setSuccess(true);
+                    } else {
+                        message = "短信发送失败，请稍后重试!";
+                        j.setMsg(message);
+                        j.setSuccess(false);
+                    }
 					systemService.addLog(message, Globals.Log_Type_OTHER, Globals.Log_Leavel_INFO);
-					j.setMsg(message);
-					j.setSuccess(true);
 				}
 			} else {
 				j.setMsg("手机号码为空,请输入后重试");

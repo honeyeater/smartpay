@@ -170,6 +170,15 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
         usdtTradeEntity.setInputtime(now);
         usdtTradeEntity.setInserttimeforhis(now);
         usdtTradeEntity.setOperatetimeforhis(now);
+        // 卖出则账户直接扣除
+        UserUsdtInfoEntity userUsdtInfoEntity = userUsdtInfoService.queryUserUsdtByUserName(usdtTradeEntity.getUsername());
+        if(userUsdtInfoEntity != null) {
+            double num = userUsdtInfoEntity.getNum();
+            num = num - usdtTradeEntity.getNum();
+            userUsdtInfoEntity.setNum(num);
+            userUsdtInfoEntity.setOperatetimeforhis(now);
+            userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
+        }
         this.save(usdtTradeEntity);
     }
 
