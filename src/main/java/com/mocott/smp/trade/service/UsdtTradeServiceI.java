@@ -5,6 +5,7 @@ import com.mocott.smp.trade.model.UsdtTradeInfo;
 import org.jeecgframework.core.common.service.CommonService;
 
 import java.io.Serializable;
+import java.util.List;
 
 public interface UsdtTradeServiceI extends CommonService{
 	
@@ -18,5 +19,7 @@ public interface UsdtTradeServiceI extends CommonService{
 
 	public void saveSale(UsdtTradeInfo usdtTradeInfo) throws Exception;
 
+	public List<UsdtTradeEntity> getTradeListByUserName(String userName) throws Exception;
 
+    public void changeSave(String tradeNum, String userName, String tradeUserName) throws Exception;
 }

@@ -101,7 +101,7 @@ public class OrderInjectServiceImpl implements OrderInjectServiceI{
         orderInjectInfo.setWaitStartTime(DateUtils.getDateAdd(firstInterDays, now)); //周期开始时间
         String inter = tSConfigcodeService.getConfigValue(OrderConstant.Period_Cycle) != null ?
                 tSConfigcodeService.getConfigValue(OrderConstant.Period_Cycle).getConfigValue():"480";
-        orderInjectInfo.setWaitInternal(inter);
+        orderInjectInfo.setWaitInternal(inter); //周期时间
         if(inter != null) {
             orderInjectInfo.setWaitEndTime(DateUtils.getDateAdd(Integer.parseInt(inter),orderInjectInfo.getWaitStartTime()));
         }
@@ -117,8 +117,12 @@ public class OrderInjectServiceImpl implements OrderInjectServiceI{
         if(injectInfos == null || injectInfos.size()==0) {
             orderInjectInfo.setVfield2("1"); //第一次订单
             frontUserMember.setNfield1(orderInjectInfo.getOrderMoney()); //记录第一次订单金额
-            frontUserMemberService.saveOrUpdate(frontUserMember);
+        } else {
+            frontUserMember.setVfield3("1"); //订单标识 1-注入 2-提出
         }
+        frontUserMember.setVfield2("0"); //不可提取
+        frontUserMember.setUseLimit(frontUserMember.getUseLimit() + orderInjectInfo.getOrderMoney()); //设置已使用限额
+        frontUserMemberService.saveOrUpdate(frontUserMember);
 
         // 2.订单日志信息
         LogOrderInfoEntity logOrderInfoEntity = new LogOrderInfoEntity();
@@ -131,6 +135,7 @@ public class OrderInjectServiceImpl implements OrderInjectServiceI{
         logOrderInfoEntity.setInputtime(now);
         logOrderInfoEntity.setInserttimeforhis(now);
         logOrderInfoEntity.setInserttimeforhis(now);
+        logOrderInfoService.save(logOrderInfoEntity);
 
         orderInjectInfoService.save(orderInjectInfo);
 
@@ -198,6 +203,11 @@ public class OrderInjectServiceImpl implements OrderInjectServiceI{
         //提取到本金\利息到本息钱包中
         userMember.setCouponWallet((orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal())+
                 (userMember.getCouponWallet()==null?0.00:userMember.getCouponWallet()) + orderInject.getOrderMoney());
+        if(userMember.getNfield3() == 0) {
+            userMember.setNfield3(orderInject.getOrderMoney()); // 可提取待返金额
+            userMember.setNfield4((orderInject.getInterestReal()==null?0.00:orderInject.getInterestReal()) + orderInject.getOrderMoney()); // 可提取本息金额
+        }
+
         userMember.setSumAmount(userMember.getSumAmount() + orderInject.getOrderMoney() + orderInject.getInterestReal());
         frontUserMemberService.saveOrUpdate(userMember);
 
@@ -211,7 +221,7 @@ public class OrderInjectServiceImpl implements OrderInjectServiceI{
         logTradeInfo.setBackMoney(orderInject.getOrderMoney());  // 返还到钱包金额
         logTradeInfo.setReleaseMoney(0.00); // 直推金额
         logTradeInfo.setTradeTime(new Date());
-            logTradeInfo.setReason("1-金额到待返钱包");
+        logTradeInfo.setReason("1-金额到R钱包");
         logTradeInfo.setRemark("");
         logTradeInfo.setInputtime(new Date());
         logTradeInfo.setInserttimeforhis(new Date());
@@ -228,13 +238,12 @@ public class OrderInjectServiceImpl implements OrderInjectServiceI{
         logTradeInfo2.setBackMoney(0.00);  // 返还到钱包金额
         logTradeInfo2.setReleaseMoney(0.00); // 直推金额
         logTradeInfo2.setTradeTime(new Date());
-        logTradeInfo2.setReason("1-本息金额-本息钱包");
+        logTradeInfo2.setReason("1-本息金额-PI钱包");
         logTradeInfo2.setRemark("");
         logTradeInfo2.setInputtime(new Date());
         logTradeInfo2.setInserttimeforhis(new Date());
         logTradeInfo2.setOperatetimeforhis(new Date());
         logTradeInfoService.save(logTradeInfo2);
-
     }
 
 }

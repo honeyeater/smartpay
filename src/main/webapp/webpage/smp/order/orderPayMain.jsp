@@ -8,8 +8,10 @@
           content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit">
     <title>金润理财平台</title>
+    <link rel="shortcut icon" href="images/favicon.ico">
     <meta name="keywords" content="理财">
     <meta name="description" content="一家专门从事理财的交易网站">
+    <link rel="shortcut icon" href="images/favicon.ico">
     <!--bootstrape-->
     <link href="plug-in/bootstrap3/css/bootstrap.min.css" rel="stylesheet">
     <link href="plug-in/webfront/css/common.css" rel="stylesheet">

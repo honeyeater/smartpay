@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.mocott.smp.order.service.OrderInjectInfoServiceI;
+import com.mocott.smp.trade.entity.UsdtPriceEntity;
+import com.mocott.smp.trade.service.UsdtPriceServiceI;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
@@ -111,7 +113,8 @@ public class OrderDrawInfoController extends BaseController {
 	private OrderInjectInfoServiceI orderInjectInfoServiceI;
 	@Autowired
     private LogTradeInfoServiceI logTradeInfoServiceI;
-
+    @Autowired
+    private UsdtPriceServiceI usdtPriceServiceI;
 
 	/**
 	 * 提出资金订单表列表 页面跳转
@@ -120,6 +123,16 @@ public class OrderDrawInfoController extends BaseController {
 	 */
 	@RequestMapping(params = "toDrawList")
 	public ModelAndView toDrawList(HttpServletRequest request) {
+        FrontUserRegisterEntity user = ResourceUtil.getSessionFrontUser();
+        List<OrderDrawInfoEntity> outlistAll = null;
+        try {
+            outlistAll = orderDrawInfoService.getListByUserName(user.getUserName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        request.setAttribute("outlistAll", outlistAll);
+
 		return new ModelAndView("smp/order/drawListMain");
 	}
 
@@ -179,12 +192,12 @@ public class OrderDrawInfoController extends BaseController {
 				message = "用户状态异常,请联系管理员!";
 				j.setMsg(message);
 				j.setSuccess(false);
-			} else if (StringUtil.isEmpty(smsCode)) {
-				j.setMsg("短信验证码为空,请确认!");
-				j.setSuccess(false);
-			} else if (fvc == null) {
-				j.setMsg("短信验证码错误或已失效,请稍后重试!");
-				j.setSuccess(false);
+//			} else if (StringUtil.isEmpty(smsCode)) {
+//				j.setMsg("短信验证码为空,请确认!");
+//				j.setSuccess(false);
+//			} else if (fvc == null) {
+//				j.setMsg("短信验证码错误或已失效,请稍后重试!");
+//				j.setSuccess(false);
 			} else if (userRegister != null && !pSaftString.equals(userRegister.getSafePassword())) {
 				j.setMsg("安全密码错误,请确认!");
 				j.setSuccess(false);
@@ -222,7 +235,7 @@ public class OrderDrawInfoController extends BaseController {
 				orderDrawInfo.setUsername(userName);
 				orderDrawInfo.setOrderCode(orderNum.makeOrderNum("G"));
 				orderDrawInfo.setOrderMoney(priceD);
-				orderDrawInfo.setOrderStatus(OrderConstant.Order_Out_Init); //产生订单,等待初始化,等待处理
+				orderDrawInfo.setOrderStatus(OrderConstant.Order_Out_Done); //产生订单,等待初始化,等待处理
 				orderDrawInfo.setOrderTime(new Date());
 
 				orderDrawInfo.setDrawWallet(drawType); //提取钱包
@@ -232,69 +245,19 @@ public class OrderDrawInfoController extends BaseController {
 					orderDrawInfo.setNfield1(priceZTD);
 				}
 				//更新钱包
-				userMember.setVfield1(drawType);//上次提取的金额
+				userMember.setVfield1(drawType);//记录提取的钱包类型
 				if ("1".equals(drawType)) { //待返钱包
 					userMember.setBackWallet(userMember.getBackWallet() - priceD);
+					userMember.setNfield3(0.00);
 				} else if ("2".equals(drawType)) { //本息钱包
 //					userMember.setCouponWallet(userMember.getCouponWallet() - priceD);
-					userMember.setCouponWallet(userMember.getCouponWallet() - priceBXD);
+//					userMember.setCouponWallet(userMember.getCouponWallet() - priceBXD);
 					userMember.setIntroWallet(userMember.getIntroWallet() - priceZTD);
-				} else if ("3".equals(drawType)) { //直推钱包
-					userMember.setIntroWallet(userMember.getIntroWallet() - priceD);
-				} else if ("4".equals(drawType)) { //本息和直推钱包
-					userMember.setCouponWallet(userMember.getCouponWallet() - priceBXD);
-					userMember.setIntroWallet(userMember.getIntroWallet() - priceZTD);
+                    userMember.setNfield4(0.00);
 				}
-				//更新短信验证
-				fvc.setIsuse("1");
-				fvc.setUserTime(new Date());
+                userMember.setVfield2("3"); //提取订单后为3
 
-                // 生成财务交易信息
-                LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
-                logTradeInfo.setUsername(userName);
-                logTradeInfo.setSerialno("1");
-                logTradeInfo.setOrderCode(orderDrawInfo.getOrderCode());
-                logTradeInfo.setStaticMoney(0.00); //注入支付金额
-                logTradeInfo.setDynMoney(0.00); // 利息金额
-                logTradeInfo.setBackMoney(0.00);  // 提出金额
-                logTradeInfo.setReleaseMoney(0.00); // 直推金额
-                logTradeInfo.setTradeTime(new Date());
-                if("1".equals(drawType)) {
-                    logTradeInfo.setNfield1(priceD); // 提出金额
-                    logTradeInfo.setReason("1-提取待返钱包");
-                } else {
-                    logTradeInfo.setNfield1(priceBXD); // 提出金额
-                    logTradeInfo.setReason("2-提取本息钱包");
-                }
-                logTradeInfo.setRemark("");
-                logTradeInfo.setInputtime(new Date());
-                logTradeInfo.setInserttimeforhis(new Date());
-                logTradeInfo.setOperatetimeforhis(new Date());
-                logTradeInfoServiceI.save(logTradeInfo);
-                if("2".equals(drawType) && priceZTD>0) { //直推钱包
-                    LogTradeInfoEntity logTradeInfo2 = new LogTradeInfoEntity();
-                    logTradeInfo2.setUsername(userName);
-                    logTradeInfo2.setSerialno("1");
-                    logTradeInfo2.setOrderCode(orderDrawInfo.getOrderCode());
-                    logTradeInfo2.setStaticMoney(0.00); //注入支付金额
-                    logTradeInfo2.setDynMoney(0.00); // 利息金额
-                    logTradeInfo2.setBackMoney(0.00);  // 返到钱包金额
-                    logTradeInfo2.setReleaseMoney(0.00); // 直推金额
-                    logTradeInfo2.setTradeTime(new Date());
-                    logTradeInfo2.setNfield1(priceZTD);
-                    if("1".equals(drawType)) {
-                        logTradeInfo2.setReason("1-提取待返钱包");
-                    } else {
-                        logTradeInfo2.setReason("2-提取直推钱包");
-                    }
-                    logTradeInfo2.setRemark("");
-                    logTradeInfo2.setInputtime(new Date());
-                    logTradeInfo2.setInserttimeforhis(new Date());
-                    logTradeInfo2.setOperatetimeforhis(new Date());
-                    logTradeInfoServiceI.save(logTradeInfo2);
-                }
-
-				orderDrawInfoService.doSaveOutOrder(orderDrawInfo, userMember, fvc);
+                orderDrawInfoService.doSaveDrawOutOrder(orderDrawInfo, userMember,priceD, priceBXD, priceZTD);
 				systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 				j.setMsg(message);
 				j.setSuccess(true);
@@ -326,17 +289,24 @@ public class OrderDrawInfoController extends BaseController {
 			FrontUserRegisterEntity user = ResourceUtil.getSessionFrontUser();
 			String userName = user.getUserName();
 			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
+
 			if(userMember == null) {
 				message = "用户状态异常,请联系管理员!";
 				j.setMsg(message);
 				j.setSuccess(false);
 			} else {
 				String canDraw = this.canDraw(userName, drawType, userMember);
+                UsdtPriceEntity usdtPriceEntity = usdtPriceServiceI.getNewPrice();
+                double newPrice = 0;
+                if(usdtPriceEntity != null) {
+                    newPrice = usdtPriceEntity.getPrice();
+                }
 				j.setMsg(message);
 				j.setSuccess(true);
 				Map<String, Object> attr = new HashMap<String, Object>();
 				attr.put("canDraw", canDraw);
 				attr.put("userMem", userMember);
+				attr.put("newPrice", newPrice);
 				j.setAttributes(attr);
 			}
 		}catch (Exception e) {
@@ -362,42 +332,31 @@ public class OrderDrawInfoController extends BaseController {
 		boolean hasBackOrder = false;
 		boolean hasDoneBackOrder = false;
 		// 获取已经支付首付款\已支付尾款\保存期的未完成订单
-		List<OrderInjectInfoEntity> couponList = orderInjectInfoServiceI.getListByUndoneATCoupon(userName);
-		List<OrderInjectInfoEntity> backList = orderInjectInfoServiceI.getListByUndoneATBack(userName);
-		List<OrderInjectInfoEntity> backDoneList = orderInjectInfoServiceI.getListByDoneBack(userName);
-		if(couponList != null && couponList.size()>0) {
-			hasCouponOrder = true;
-		}
-		if(backList != null && backList.size()>0) {
-			hasBackOrder = true;
-		}
-		if(backDoneList != null && backDoneList.size()>0) {
-			hasDoneBackOrder = true;
-		}
+//		List<OrderInjectInfoEntity> couponList = orderInjectInfoServiceI.getListByUndoneATCoupon(userName);
+//		List<OrderInjectInfoEntity> backList = orderInjectInfoServiceI.getListByUndoneATBack(userName);
+//		List<OrderInjectInfoEntity> backDoneList = orderInjectInfoServiceI.getListByDoneBack(userName);
+//		if(couponList != null && couponList.size()>0) {
+//			hasCouponOrder = true;
+//		}
+//		if(backList != null && backList.size()>0) {
+//			hasBackOrder = true;
+//		}
+//		if(backDoneList != null && backDoneList.size()>0) {
+//			hasDoneBackOrder = true;
+//		}
 		String canDraw = "0";
 		System.out.println("-----"+drawType);
+		String lastDrawType = userMember.getVfield1();
+
 		// 提取待返钱包
-		if("1".equals(drawType)) {
-			if(hasDoneBackOrder && hasCouponOrder && userMember.getBackWallet()>0 &&
-					(StringUtil.isEmpty(userMember.getVfield1()) || !"1".equals(userMember.getVfield1()))) {
+		if("1".equals(drawType) && "1".equals(userMember.getVfield3()) && "1".equals(userMember.getVfield2()) && !"1".equals(lastDrawType)) {
+			if(userMember.getNfield3()>0) {
 				canDraw = "1";
 			}
 		}
 		// 提取本息钱包
-		if("2".equals(drawType)) {
-			if(hasBackOrder && userMember.getCouponWallet()>0 && !"2".equals(userMember.getVfield1()) && "1".equals(userMember.getVfield1())) {
-				canDraw = "1";
-			}
-		}
-		// 提取直推钱包
-		if("3".equals(drawType)) {
-			if(hasBackOrder && userMember.getIntroWallet()>0) {
-				canDraw = "1";
-			}
-		}
-		// 提取本息和直推钱包
-		if("4".equals(drawType)) {
-			if(hasBackOrder) {
+		if("2".equals(drawType)&& "1".equals(userMember.getVfield3()) && "1".equals(userMember.getVfield2()) && "1".equals(lastDrawType)) {
+			if(userMember.getNfield4()>0) {
 				canDraw = "1";
 			}
 		}

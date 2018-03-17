@@ -1,19 +1,30 @@
 package com.mocott.smp.order.service.impl;
 import com.mocott.smp.base.entity.FrontVerifyCodeEntity;
 import com.mocott.smp.base.service.FrontVerifyCodeServiceI;
+import com.mocott.smp.log.entity.LogOrderInfoEntity;
+import com.mocott.smp.log.entity.LogPayInfoEntity;
+import com.mocott.smp.log.entity.LogTradeInfoEntity;
+import com.mocott.smp.log.service.LogOrderInfoServiceI;
+import com.mocott.smp.log.service.LogPayInfoServiceI;
+import com.mocott.smp.log.service.LogTradeInfoServiceI;
 import com.mocott.smp.order.service.OrderDrawInfoServiceI;
+import com.mocott.smp.trade.entity.UsdtPriceEntity;
+import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
+import com.mocott.smp.trade.service.UsdtPriceServiceI;
+import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.util.MakeOrderNum;
+import com.mocott.smp.util.OrderConstant;
 import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import com.mocott.smp.order.entity.OrderDrawInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+
+import java.math.BigDecimal;
+import java.util.*;
 import java.io.Serializable;
 import org.jeecgframework.core.util.ApplicationContextUtil;
 import org.jeecgframework.core.util.MyClassLoader;
@@ -28,6 +39,16 @@ public class OrderDrawInfoServiceImpl extends CommonServiceImpl implements Order
 	private FrontUserMemberServiceI frontUserMemberServiceI;
 	@Autowired
 	private FrontVerifyCodeServiceI frontVerifyCodeServiceI;
+	@Autowired
+    private LogTradeInfoServiceI logTradeInfoServiceI;
+	@Autowired
+    private LogOrderInfoServiceI logOrderInfoServiceI;
+	@Autowired
+    private UsdtPriceServiceI usdtPriceServiceI;
+	@Autowired
+    private UserUsdtInfoServiceI userUsdtInfoServiceI;
+	@Autowired
+    private LogPayInfoServiceI logPayInfoService;
 
  	public void delete(OrderDrawInfoEntity entity) throws Exception{
  		super.delete(entity);
@@ -56,13 +77,21 @@ public class OrderDrawInfoServiceImpl extends CommonServiceImpl implements Order
      */
 	@Override
 	public List<OrderDrawInfoEntity> getUndoneList(String userName) throws Exception {
-		String query = " from OrderDrawInfoEntity o where o.orderStatus in ('01','02') and o.username = :userName";
-		Query queryObject = getSession().createQuery(query);
-		queryObject.setParameter("userName", userName);
-		List<OrderDrawInfoEntity> orderDrawInfoList = queryObject.list();
-		return orderDrawInfoList;
-	}
+        String query = " from OrderDrawInfoEntity o where o.orderStatus in ('01','02') and o.username = :userName";
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("userName", userName);
+        List<OrderDrawInfoEntity> orderDrawInfoList = queryObject.list();
+        return orderDrawInfoList;
+    }
 
+    @Override
+    public List<OrderDrawInfoEntity> getListByUserName(String userName) throws Exception {
+        String query = " from OrderDrawInfoEntity o where o.username = :userName order by orderTime desc";
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("userName", userName);
+        List<OrderDrawInfoEntity> orderDrawInfoList = queryObject.list();
+        return orderDrawInfoList;
+    }
 	/**
 	 * 生产待提出的订单
 	 * @param orderDrawInfo
@@ -73,8 +102,112 @@ public class OrderDrawInfoServiceImpl extends CommonServiceImpl implements Order
 	public void doSaveOutOrder(OrderDrawInfoEntity orderDrawInfo, FrontUserMemberEntity userMember, FrontVerifyCodeEntity verifyCode) throws Exception {
 		this.save(orderDrawInfo);
 		frontUserMemberServiceI.saveOrUpdate(userMember);
-		frontVerifyCodeServiceI.saveOrUpdate(verifyCode);
+		if(verifyCode != null) {
+            frontVerifyCodeServiceI.saveOrUpdate(verifyCode);
+        }
 	}
+
+
+    /**
+     * 生产待提出的订单
+     * @param orderDrawInfo
+     * @param userMember
+     * @throws Exception
+     */
+    @Override
+    public void doSaveDrawOutOrder(OrderDrawInfoEntity orderDrawInfo, FrontUserMemberEntity userMember, Double priceD, Double priceBXD, Double priceZTD) throws Exception {
+        String drawType = orderDrawInfo.getDrawWallet(); //提取钱包
+        String userName = userMember.getUsername();
+        //更新钱包
+        // 1.生成财务交易信息
+        LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
+        logTradeInfo.setUsername(userName);
+        logTradeInfo.setSerialno("1");
+        logTradeInfo.setOrderCode(orderDrawInfo.getOrderCode());
+        logTradeInfo.setStaticMoney(0.00); //注入支付金额
+        logTradeInfo.setDynMoney(0.00); // 利息金额
+        logTradeInfo.setBackMoney(0.00);  // 提出金额
+        logTradeInfo.setReleaseMoney(0.00); // 直推金额
+        logTradeInfo.setTradeTime(new Date());
+        if("1".equals(drawType)) {
+            logTradeInfo.setNfield1(priceD); // 提出金额
+            logTradeInfo.setReason("1-提取R钱包");
+        } else {
+            logTradeInfo.setNfield1(priceBXD); // 提出金额
+            logTradeInfo.setReason("2-提取PI钱包");
+        }
+        logTradeInfo.setRemark("");
+        logTradeInfo.setInputtime(new Date());
+        logTradeInfo.setInserttimeforhis(new Date());
+        logTradeInfo.setOperatetimeforhis(new Date());
+        logTradeInfoServiceI.save(logTradeInfo);
+        if("2".equals(drawType) && priceZTD>0) { //直推钱包
+            LogTradeInfoEntity logTradeInfo2 = new LogTradeInfoEntity();
+            logTradeInfo2.setUsername(userName);
+            logTradeInfo2.setSerialno("1");
+            logTradeInfo2.setOrderCode(orderDrawInfo.getOrderCode());
+            logTradeInfo2.setStaticMoney(0.00); //注入支付金额
+            logTradeInfo2.setDynMoney(0.00); // 利息金额
+            logTradeInfo2.setBackMoney(0.00);  // 返到钱包金额
+            logTradeInfo2.setReleaseMoney(0.00); // 直推金额
+            logTradeInfo2.setTradeTime(new Date());
+            logTradeInfo2.setNfield1(priceZTD);
+            if("1".equals(drawType)) {
+                logTradeInfo2.setReason("1-提取R钱包");
+            } else {
+                logTradeInfo2.setReason("2-提取直推钱包");
+            }
+            logTradeInfo2.setRemark("");
+            logTradeInfo2.setInputtime(new Date());
+            logTradeInfo2.setInserttimeforhis(new Date());
+            logTradeInfo2.setOperatetimeforhis(new Date());
+            logTradeInfoServiceI.save(logTradeInfo2);
+        }
+
+        // 2.订单日志信息
+        LogOrderInfoEntity logOrderInfoEntity = new LogOrderInfoEntity();
+        logOrderInfoEntity.setUsername(userName);
+        logOrderInfoEntity.setSerialno("1");
+        logOrderInfoEntity.setOrderCode(orderDrawInfo.getOrderCode());
+        logOrderInfoEntity.setOrderMoney(orderDrawInfo.getOrderMoney());
+        logOrderInfoEntity.setOrderTime(orderDrawInfo.getOrderTime());
+        logOrderInfoEntity.setOrderType("2"); //订单类型
+        logOrderInfoEntity.setInputtime(orderDrawInfo.getInputtime());
+        logOrderInfoEntity.setInserttimeforhis(orderDrawInfo.getInputtime());
+        logOrderInfoEntity.setInserttimeforhis(orderDrawInfo.getInputtime());
+        logOrderInfoServiceI.save(logOrderInfoEntity);
+        // 3.更新会员信息
+        frontUserMemberServiceI.saveOrUpdate(userMember);
+        // 4.保存提出订单
+        this.save(orderDrawInfo); //保存订单
+        // 5.转到USDT账户
+        UserUsdtInfoEntity userUsdtInfoEntity=  userUsdtInfoServiceI.queryUserUsdtByUserName(userName);
+        UsdtPriceEntity usdtPrice = usdtPriceServiceI.getNewPrice();
+        double price = usdtPrice.getPrice();
+        double mynum = userUsdtInfoEntity.getNum();
+        double f1 = getPayNum(orderDrawInfo.getOrderMoney(), price);
+        userUsdtInfoEntity.setNum(userUsdtInfoEntity.getNum()+f1);
+        userUsdtInfoServiceI.saveOrUpdate(userUsdtInfoEntity);
+        // 6.支付信息记录
+        LogPayInfoEntity logPayInfoEntity = new LogPayInfoEntity();
+        logPayInfoEntity.setUsername(userName);
+        logPayInfoEntity.setSerialno("1");
+        logPayInfoEntity.setOrderCode(orderDrawInfo.getOrderCode());
+        logPayInfoEntity.setPayTime(new Date());
+        logPayInfoEntity.setPayMoney(f1);
+        logPayInfoEntity.setDealMoney(price);
+        logPayInfoEntity.setNfield1(mynum);
+        logPayInfoEntity.setVfield1("2");
+        logPayInfoService.save(logPayInfoEntity);
+
+    }
+
+    private double getPayNum(double payPrice, double price) {
+        double payNum = payPrice/price;
+        BigDecimal b = new BigDecimal(payNum);
+        double f1 = b.setScale(3, BigDecimal.ROUND_DOWN).doubleValue();
+        return f1;
+    }
 
 	/**
 	 * 新增操作增强业务

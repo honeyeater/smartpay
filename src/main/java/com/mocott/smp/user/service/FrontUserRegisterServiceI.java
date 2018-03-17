@@ -19,12 +19,10 @@ public interface FrontUserRegisterServiceI extends CommonService{
 
 	public List<FrontUserRegisterEntity> getChildUserByIntro(String introducer);
 
-
 	public List<FrontUserRegisterEntity> queryEntityByIdNo(String idNo) throws Exception;
 
 	public FrontUserRegisterEntity queryEntityByPhoneNo(String phoneNo) throws Exception;
 
 	public List<FrontUserRegisterEntity> queryParentEntity(String userName) throws Exception;
-
 
 }

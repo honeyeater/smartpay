@@ -140,8 +140,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 				tsIndexServiceI.getIndexInfo(currentLoginFrontUser.getUserName(), request);
 
 				if(!"1".equals(currentLoginFrontUser.getValidFlag())) {
-					if(requestPath.contains("frontUserActivatecodeController.do?activatecode")) {
-
+					if(requestPath.contains("frontUserActivateController.do")) {
 					} else {
 						forwardToActivate(request, response);
 						return false;
@@ -283,7 +282,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 		//超时，未登陆页面跳转
 		//response.sendRedirect(request.getServletContext().getContextPath()+"/loginController.do?login");
 //      update-start--Author:chenjin  Date:20160828 for：TASK #1324 【bug】Session超时后，重新登录页面显示在标签里,让它重新显示登录页面
-		response.sendRedirect(request.getSession().getServletContext().getContextPath()+"/frontUserActivatecodeController.do?activatecode");
+		response.sendRedirect(request.getSession().getServletContext().getContextPath()+"/frontUserActivateController.do?activatecode");
 //      update-end--Author:chenjin  Date:20160828 for：TASK #1324 【bug】Session超时后，重新登录页面显示在标签里,让它重新显示登录页面
 		//request.getRequestDispatcher("loginController.do?login").forward(request, response);
 		//update-start--Author:scott  Date:20160803 for：无登陆情况跳转登陆页

@@ -17,6 +17,7 @@
     <!-- bootstrap & fontawesome -->
     <link rel="stylesheet" href="plug-in/ace/css/bootstrap.css" />
     <link rel="stylesheet" href="plug-in/ace/css/font-awesome.css" />
+    <link href="plug-in/smp/css/style.css" type="text/css" rel="stylesheet">
     <%--<link rel="stylesheet" type="text/css" href="plug-in/accordion/css/accordion.css">--%>
     <!-- text fonts -->
     <link rel="stylesheet" href="plug-in/ace/css/ace-fonts.css" />
@@ -42,99 +43,74 @@
     <![endif]-->
 
 </head>
-<body class="login-layout light-login">
-<div class="main-container">
-    <div class="main-content">
+
+<body>
+<div class="lo_top weui-pt30 weui-pb30">
+    <div class="container">
+        <a href="#"><img src="plug-in/smp/images/logo1.png"></a>
+    </div>
+</div>
+<div class="lo_bg">
+    <div class="container">
         <div class="row">
-            <div class="col-sm-8 col-sm-offset-2">
-                <div class="login-container top-content">
-                    <div class="row">
-                        <div class="text">
-                            <h1><strong>金润智能理财系统</strong></h1>
-                            <div class="description">
-                                <p>
-                                    您可以放心参与的智能理财社区
-                                </p>
-                            </div>
+            <div class="col-md-9 weui-white m_none">
+                <h3 class="lo_txt weui-f_b">专业 合规 可信赖</h3>
+                <p class="weui-dnb weui-bb weui-f24 weui-pb10 weui-pt20">精选金融资产 · 专业技术护航 · 严格合规运作</p>
+            </div>
+            <div class="col-md-3">
+                <div class="weui-bgf weui-p20 weui-bod_r">
+                    <h3 class="lo_title weui-f_b weui-bb weui-pl10"><span class="weui-dnb">账号登录</span></h3>
+                    <form id="loinForm" method="post">
+                    <input type="hidden" id="ReturnURL"  name="ReturnURL" value="${ReturnURL }"/>
+                    <div class="weui-mt20">
+                        <div class="input-group">
+                            <span class="input-group-addon weui-bgf" id="sizing-addon3"><i class="glyphicon glyphicon-user weui-c_9"></i></span>
+                            <input type="text" class="form-control" placeholder="用户名" aria-describedby="sizing-addon2" name="userName" iscookie="true" id="userName" value="">
                         </div>
                     </div>
-                    <div class="space-6"></div>
-                    <div class="position-relative col-sm-6 col-sm-offset-3">
-                        <div id="login-box" class="login-box visible widget-box no-border" >
-                            <div class="widget-body">
-                                <form id="loinForm" class="form-horizontal" method="post">
-                                    <input type="hidden" id="ReturnURL"  name="ReturnURL" value="${ReturnURL }"/>
-                                    <div class="widget-main">
-                                        <div class="form-top">
-                                            <div class="form-top-left">
-                                                <h4 class="header white lighter bigger">
-                                                    用户登录
-                                                </h4>
-                                            </div>
-                                            <div class="form-top-right">
-                                                <i class="fa fa-lock"></i>
-                                            </div>
-                                        </div>
-                                        <div class="space-6"></div>
-                                        <label class="block clearfix">
-								<span class="block input-icon input-icon-right">
-                                    <input type="text"  name="userName" iscookie="true" class="form-control" placeholder="请输入用户名"  id="userName" value=""/>
-									<%--<i class="ace-icon fa fa-user"></i>--%>
-								</span>
-                                        </label>
-                                        <label class="block clearfix">
-								<span class="block input-icon input-icon-right">
-									<input type="password" name="password" class="form-control " placeholder="请输入密码" id="password" value=""/>
-									<%--<i class="ace-icon fa fa-lock"></i>--%>
-								</span>
-                                        </label>
-                                        <label class="block clearfix">
-                                            <div class="input-group">
-                                                <input type="text" style="width: 98%;-moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px;" name="randCode" class="form-control" placeholder="请输入验证码"  id="randCode"/>
-                                                <span class="input-group-addon" style="padding: 0px;"><img id="randCodeImage" src="randCodeImage"  /></span>
-                                            </div>
-                                        </label>
-                                        <div class="clearfix">
-                                            <label class="inline">
-                                                <input type="checkbox" class="ace" id="on_off"  name="remember" value="yes"/>
-                                                <span class="lbl white">&nbsp;记住用户名</span>
-                                            </label>
-                                        </div>
-                                        <div class="clearfix">
-                                            <button type="button" id="but_login" style="width: 100%;" onclick="checkUser()" class="pull-right btn  btn-primary">
-                                                <i class="ace-icon fa fa-key"></i>
-                                                <span class="bigger-222" >登录</span>
-                                            </button>
-                                        </div>
-
-                                        <div class="clearfix">
-                                            <div style="float: right;margin-right: 10px;">
-                                                <label class="inline">
-                                <span class="lbl white">&nbsp; <a href="frontUserRegisterController.do?goForget" class="forgot-password-link">
-                                忘记密码</a></span>
-
-                                                </label>
-                                                <i class="fa fa-question" style="color: white"></i>
-                                            </div>
-                                        </div>
-
-                                        <div class="space-4"></div>
-                                        <div class="align-center alert alert-danger alert-dismissible" role="alert" id="errMsgContiner">
-                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                            <div id="showErrMsg"></div>
-                                        </div>
-                                    </div>
-
-                                </form>
-                            </div>
+                    <div class="weui-mt20">
+                        <div class="input-group">
+                            <span class="input-group-addon weui-bgf" id="sizing-addon4"><i class="glyphicon glyphicon-lock weui-c_9"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="密码" aria-describedby="sizing-addon2" id="password" value="">
                         </div>
-
                     </div>
+                    <div class="weui-mt20">
+                        <div class="input-group weui-p_r">
+                            <span class="input-group-addon weui-bgf" id="sizing-addon5"><i class="glyphicon glyphicon-saved weui-c_9"></i></span>
+                            <input type="text" class="form-control" placeholder="验证码" aria-describedby="sizing-addon2" name="randCode" id="randCode">
+                            <img id="randCodeImage" src="randCodeImage"  class="yzm">
+                        </div>
+                    </div>
+                    <div class="clearfix weui-mt10 weui-f12">
+                        <span class="weui-fl"><input type="checkbox" name="remember" value="yes"> 记住用户名</span>
+                        <a href="frontUserRegisterController.do?goForget" class="weui-fr weui-orange">忘记密码？</a>
+                    </div>
+                    <div class=" weui-mt20 weui-pb20 weui-bb">
+                        <input type="button" id="but_login" class="btn btn-block btn-warning weui-f20" onclick="checkUser();" value="登 录">
+                    </div>
+                    <div class="clearfix weui-mt10">
+                        <span class="weui-fl weui-f12">还没有账号？ </span>
+                        <a href="frontUserRegisterController.do?register&t=8a8bbf2a61211b560161211b56a30000" class="weui-fr weui-orange">立即注册 >>       </a>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-9 weui-white m_none">
+            </div>
+            <div class="col-md-3">
+                <div class="align-center alert alert-danger alert-dismissible" role="alert" id="errMsgContiner">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div id="showErrMsg"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<div class="weui-t_c weui-pt30 weui-pb30 weui-c_9">JR智能理财有限公司版权所有</div>
+<script src="plug-in/smp/js/jquery.min.js"></script>
+<script src="plug-in/smp/js/menu.js"></script>
 
 <script type="text/javascript" src="plug-in/jquery/jquery-1.8.3.min.js"></script>
 <script type="text/javascript" src="plug-in/jquery/jquery.cookie.js"></script>

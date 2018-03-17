@@ -1,53 +1,77 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<div class="container" id="updpwd">
-    <div class="row" style="margin-top: 20px">
-        <form class="required-validate" method="post" onsubmit="return validateCallback(this);" id="updpwdForm">
-            <div class="col-sm-1"></div>
-            <div class="col-sm-10">
-                <div class="col-lg-6">
-                    <div class="alert alert-info" role="alert" style="width: 100%;text-align: center">
-                        <strong>登录密码</strong>
-                        <hr>
-                        <div class="form-group">
-                            <input type="password" class="form-control" placeholder="旧登录密码" id="oPassWard" name="oPassWard">
+<div class="weui-p20">
+    <div class=" weui-bgf weui-bod_r">
+        <h3 class="weui-f16 weui-f_b title">修改密码</h3>
+        <div class="p10 box_h">
+            <div class="row">
+                <form class="required-validate" method="post" onsubmit="return validateCallback(this);" id="updpwdForm">
+                <div class="col-md-4 col-md-push-4 weui-pt30 weui-pb30">
+                    <div class="weui-bod weui-mt30">
+                        <ul id="myTab" class="nav nav-tabs nav-tabs1 weui-f16">
+                            <li class="active"><a href="#home" data-toggle="tab">登录密码</a></li>
+                            <li><a href="#ios" data-toggle="tab">安全密码</a></li>
+                        </ul>
+                        <div id="myTabContent" class="tab-content">
+                            <div class="tab-pane fade in active" id="home">
+                                <div class=" pass_p">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb30" width="90">旧密码：</td>
+                                            <td class="weui-pb30">
+                                                <input type="password" class="form-control" id="oPassWard" name="oPassWard">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb30">新密码：</td>
+                                            <td class="weui-pb30">
+                                                <input type="password" class="form-control" id="nPassWard" name="nPassWard">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>确认新密码：</td>
+                                            <td>
+                                                <input type="password" class="form-control" id="rPassWard" name="rPassWard">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="ios">
+                                <div class=" pass_p">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb30" width="90">旧密码：</td>
+                                            <td class="weui-pb30">
+                                                <input type="password" class="form-control" id="oPassWard1" name="oPassWard1">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb30">新密码：</td>
+                                            <td class="weui-pb30">
+                                                <input type="password" class="form-control" id="nPassWard1" name="nPassWard1">
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                            <td>确认新密码：</td>
+                                            <td>
+                                                <input type="password" class="form-control" id="rPassWard1" name="rPassWard1">
+                                                </td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                            </div>
                         </div>
-                        <hr>
-                        <div class="form-group">
-                            <input type="password" class="form-control" placeholder="新登录密码" id="nPassWard" name="nPassWard">
-                        </div>
-                        <hr>
-                        <div class="form-group">
-                            <input type="password" class="form-control" placeholder="重复登录密码" id="rPassWard" name="rPassWard">
-                        </div>
-                        <hr>
                     </div>
+                    <input type="submit" class="btn btn-block btn-danger weui-f16 weui-pt10 weui-pb10 weui-mt30" value="修改资料">
                 </div>
-                <div class="col-lg-6">
-                    <div class="alert alert-info" role="alert" style="width: 100%;text-align: center">
-                        <strong>安全密码</strong>
-                        <hr>
-                        <div class="form-group">
-                            <input type="password" class="form-control" placeholder="旧安全密码" id="oPassWard1" name="oPassWard1">
-                        </div>
-                        <hr>
-                        <div class="form-group">
-                            <input type="password" class="form-control" placeholder="新安全密码" id="nPassWard1" name="nPassWard1">
-                        </div>
-                        <hr>
-                        <div class="form-group">
-                            <input type="password" class="form-control" placeholder="重复安全密码" id="rPassWard1" name="rPassWard1">
-                        </div>
-                        <hr>
-                    </div>
-                </div>
+                </form>
             </div>
-            <div class="col-sm-1"></div>
-            <div class="col-md-12" style="text-align: center">
-                <button type="submit" class="btn btn-primary col-md-4 col-md-offset-4">确定</button></div>
-        </form>
+        </div>
     </div>
 </div>
+
 <link href="plug-in/bootstrap3/validate/css/bootstrapValidator.min.css" rel="stylesheet">
 <script src="plug-in/bootstrap3/validate/js/bootstrapValidator.js"></script>
 <script src="plug-in/bootstrap3/validate/js/language/zh_CN.js"></script>

@@ -17,6 +17,10 @@ public interface OrderDrawInfoServiceI extends CommonService{
 
 	public List<OrderDrawInfoEntity> getUndoneList(String userName) throws Exception;
 
+    public List<OrderDrawInfoEntity> getListByUserName(String userName) throws Exception;
+
 	public void doSaveOutOrder(OrderDrawInfoEntity orderDrawInfo, FrontUserMemberEntity userMember, FrontVerifyCodeEntity verifyCode) throws Exception;
+
+    public void doSaveDrawOutOrder(OrderDrawInfoEntity orderDrawInfo, FrontUserMemberEntity userMember, Double priceD, Double priceBXD, Double priceZTD) throws Exception;
 
 }

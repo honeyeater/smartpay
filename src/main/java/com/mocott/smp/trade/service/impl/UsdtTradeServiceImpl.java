@@ -78,6 +78,15 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
         this.save(usdtTradeEntity);
     }
 
+    public void changeSave(String tradeNum, String userName, String tradeUserName) throws Exception {
+        UserUsdtInfoEntity userUsdtInfoEntity = userUsdtInfoService.queryUserUsdtByUserName(userName);
+        UserUsdtInfoEntity tradeUserUsdtInfoEntity = userUsdtInfoService.queryUserUsdtByUserName(tradeUserName);
+        userUsdtInfoEntity.setNum(userUsdtInfoEntity.getNum()-Double.parseDouble(tradeNum));
+        tradeUserUsdtInfoEntity.setNum(tradeUserUsdtInfoEntity.getNum()+Double.parseDouble(tradeNum));
+        userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
+        userUsdtInfoService.saveOrUpdate(tradeUserUsdtInfoEntity);
+    }
+
     /**
      * 买入信息审核
      * @throws Exception
@@ -143,6 +152,22 @@ public class UsdtTradeServiceImpl extends CommonServiceImpl implements UsdtTrade
             }
         }
     }
+
+    /**
+     * 获取交易列表
+     * @param userName
+     * @return
+     * @throws Exception
+     */
+    public List<UsdtTradeEntity> getTradeListByUserName(String userName) throws Exception {
+        String query = " from UsdtTradeEntity o where o.username = :userName order by inputtime desc";
+        Query queryObject = getSession().createQuery(query);
+        queryObject.setParameter("userName", userName);
+        List<UsdtTradeEntity> usdtTrades = queryObject.list();
+        return usdtTrades;
+    }
+
+
     /**
      * 保存卖出信息
      * @param usdtTradeInfo

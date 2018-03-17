@@ -5,7 +5,9 @@ import com.mocott.smp.log.service.LogTradeInfoServiceI;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
 import com.mocott.smp.order.service.OrderInjectInfoServiceI;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import com.mocott.smp.util.OrderConstant;
 import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
@@ -29,6 +31,8 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 	private FrontUserMemberServiceI frontUserMemberServiceI;
 	@Autowired
     private LogTradeInfoServiceI logTradeInfoServiceI;
+	@Autowired
+    private FrontUserRegisterServiceI frontUserRegisterServiceI;
 
  	public void delete(OrderInjectInfoEntity entity) throws Exception{
  		super.delete(entity);
@@ -50,23 +54,105 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 	 */
 	@Override
 	public void changeOrderStauts() throws Exception {
-		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('03')";
-		Query queryObject = getSession().createQuery(query);
-		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
-		Date now = new Date();
-		if(orderInjectInfoEntityList != null && orderInjectInfoEntityList.size()>0) {
-			for (int i=0; i<orderInjectInfoEntityList.size(); i++) {
-				OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList.get(i);
-				int saveI = (orderInjectInfoEntity.getSaveInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getSaveInternal()) : 360);
+        Date now = new Date();
+        String query01 = " from OrderInjectInfoEntity o where o.orderStatus in ('01')"; //01 待支付首付款
+        Query queryObject01 = getSession().createQuery(query01);
+        List<OrderInjectInfoEntity> orderInjectInfoEntityList01 = queryObject01.list();
+        if(orderInjectInfoEntityList01 != null && orderInjectInfoEntityList01.size()>0) {
+            for (int i=0; i<orderInjectInfoEntityList01.size(); i++) {
+                OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList01.get(i);
+                int firstI = (orderInjectInfoEntity.getFirstEndInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getFirstEndInternal()) : 8);
+                int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getOrderTime());
+                if(diffD > firstI) {
+                    FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
+                    frontUserRegisterEntity.setValidFlag("0");
+                    frontUserRegisterEntity.setVfield5("1"); //首付款未支付被冻结
+                    frontUserRegisterServiceI.saveOrUpdate(frontUserRegisterEntity);
+                }
+            }
+        }
+
+		String query02 = " from OrderInjectInfoEntity o where o.orderStatus in ('02')"; //02 尾款未支付
+		Query queryObject02 = getSession().createQuery(query02);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList02 = queryObject02.list();
+		if(orderInjectInfoEntityList02 != null && orderInjectInfoEntityList02.size()>0) {
+			for (int i=0; i<orderInjectInfoEntityList02.size(); i++) {
+				OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList02.get(i);
+				int finalI = (orderInjectInfoEntity.getFirstEndInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getFirstEndInternal()) : 12);
 				int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getWaitEndTime());
-				if(diffD > saveI || diffD == saveI) {
-					orderInjectInfoEntity.setOrderStatus(OrderConstant.Order_Period_Finish);
-					this.saveOrUpdate(orderInjectInfoEntity);
-				}
+                if(diffD > finalI) {
+                    FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
+                    frontUserRegisterEntity.setValidFlag("0");
+                    frontUserRegisterEntity.setVfield5("2"); //尾款未支付被冻结
+                    frontUserRegisterServiceI.saveOrUpdate(frontUserRegisterEntity);
+                }
 			}
 		}
 
+        String query04 = " from OrderInjectInfoEntity o where o.orderStatus in ('04')"; //04 周期
+        Query queryObject04 = getSession().createQuery(query04);
+        List<OrderInjectInfoEntity> orderInjectInfoEntityList04 = queryObject04.list();
+        if(orderInjectInfoEntityList04 != null && orderInjectInfoEntityList04.size()>0) {
+            for (int i=0; i<orderInjectInfoEntityList04.size(); i++) {
+                OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList04.get(i);
+                int waitI = (orderInjectInfoEntity.getWaitInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getWaitInternal()) : 480);
+                int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getWaitStartTime());
+                if(diffD > waitI) {
+                    orderInjectInfoEntity.setOrderStatus(OrderConstant.Order_Final_Pay);
+                    this.saveOrUpdate(orderInjectInfoEntity);
+                }
+            }
+        }
+        // 判断保存期内，如果没有新订单注入时，则进行封号处理
+        String query03 = " from OrderInjectInfoEntity o where o.orderStatus in ('03')"; //03 保存期
+        Query queryObject03 = getSession().createQuery(query03);
+        List<OrderInjectInfoEntity> orderInjectInfoEntityList03 = queryObject03.list();
+        if(orderInjectInfoEntityList03 != null && orderInjectInfoEntityList03.size()>0) {
+            for (int i=0; i<orderInjectInfoEntityList03.size(); i++) {
+                OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList03.get(i);
+                int saveI = (orderInjectInfoEntity.getSaveInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getSaveInternal()) : 360);
+                int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getEndPayTime());
+                if(diffD > saveI) {
+                    List<OrderInjectInfoEntity> orderInjectInfoEntityListnew = this.getUndoneList(orderInjectInfoEntity.getUsername());
+                    if(orderInjectInfoEntityListnew == null || orderInjectInfoEntityListnew.size()==0 || orderInjectInfoEntityListnew.size()==1) {
+                        FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
+                        frontUserRegisterEntity.setValidFlag("0");
+                        frontUserRegisterEntity.setVfield5("3"); //没有新订单被冻结
+                        frontUserRegisterServiceI.saveOrUpdate(frontUserRegisterEntity);
+                    }
+                    boolean hasCh = true;
+                    if(orderInjectInfoEntityListnew != null && orderInjectInfoEntityListnew.size()>1) { //所有保存期的订单都超时了
+                        for(int j=0;j<orderInjectInfoEntityListnew.size(); j++) {
+                            OrderInjectInfoEntity orderInjectInfoEntitynew = orderInjectInfoEntityListnew.get(j);
+                            if("03".equals(orderInjectInfoEntitynew.getOrderStatus()) && hasChaoshi(orderInjectInfoEntitynew.getSaveInternal(), now,
+                                    orderInjectInfoEntitynew.getEndPayTime())) {
+                                hasCh = true;
+                            } else {
+                                hasCh = false;
+                                break;
+                            }
+                        }
+                    }
+                    if(hasCh) {
+                        FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
+                        frontUserRegisterEntity.setValidFlag("0");
+                        frontUserRegisterEntity.setVfield5("3"); //没有新订单被冻结
+                        frontUserRegisterServiceI.saveOrUpdate(frontUserRegisterEntity);
+                    }
+                }
+            }
+        }
 	}
+
+	private boolean hasChaoshi(String saveInterNa, Date now, Date endPayTime) {
+        int saveI = (saveInterNa != null ? Integer.parseInt(saveInterNa) : 360);
+        int diffD = DateUtils.dateDiffForDate('h', now, endPayTime);
+        if(diffD > saveI) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 
 	public void saveOrUpdate(OrderInjectInfoEntity entity) throws Exception{
@@ -83,7 +169,7 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 	@Override
 	public List<OrderInjectInfoEntity> getUndoneList(String userName) throws Exception {
 //		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.username = :userName";
-		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03') and o.username = :userName";
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','03','04') and o.username = :userName";
 		Query queryObject = getSession().createQuery(query);
 		queryObject.setParameter("userName", userName);
 		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
@@ -111,7 +197,7 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 	 */
 	@Override
 	public List<OrderInjectInfoEntity> getListByUser(String userName) throws Exception {
-		String query = " from OrderInjectInfoEntity o where o.username = :userName";
+		String query = " from OrderInjectInfoEntity o where o.username = :userName order by orderTime desc";
 		Query queryObject = getSession().createQuery(query);
 		queryObject.setParameter("userName", userName);
 		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
@@ -153,7 +239,7 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 	 */
 	@Override
 	public List<OrderInjectInfoEntity> getListByUndonePay(String userName) throws Exception {
-		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02')  and o.username = :userName";
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','04')  and o.username = :userName";
 		Query queryObject = getSession().createQuery(query);
 		queryObject.setParameter("userName", userName);
 		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();

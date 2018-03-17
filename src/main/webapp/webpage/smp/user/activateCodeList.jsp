@@ -1,81 +1,48 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<input type="hidden" id="currentUserValidFlag" name="currentUserValidFlag" value="${frontUser.validFlag}">
 
-<div class="container" id="activatemanger">
-    <div class="row">
-        <div class="col-sm-12" style="text-align: center;margin-bottom: 20px">
-            <button type="button" class="btn btn-primary" onclick="buyCode()">激活码购买</button>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#doBuyCode" id="buyCode" style="display: none">激活码购买</button>
-            <button type="button" class="btn btn-primary" onclick="doActiveB()">会员激活</button>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#doActiveB" id="doActiveButton" style="display: none">会员激活</button>
-        </div>
-        <div class="col-lg-1"></div>
-        <div class="col-lg-10">
-            <div class="col-sm-12">
-                <table class="table table-striped table-bordered" style="border-color: #0a0c0e">
-                    <thead>
-                    <tr class="bg-warning">
-                        <th style="font-size: 10px">激活码</th>
-                        <th style="font-size: 10px">是否使用</th>
-                        <th style="font-size: 10px">使用者</th>
-                        <th style="font-size: 10px">使用时间</th>
+<div class="weui-p20">
+    <div class=" weui-bgf weui-bod_r">
+        <h3 class="weui-f16 weui-f_b title">激活码管理</h3>
+        <div class=" weui-p15 box_h">
+            <p><a href="#" class="btn btn-primary btn-primary1" data-toggle="modal" data-target="#doActiveB" id="doActiveButton">会员激活</a>
+                <span class="weui-red weui-ml10">请联系网站客服人员进行购买，购买后进行激活！平台统一售价，体验版100元，正式版500元！</span></p>
+            <div class="table-responsive weui-mt15">
+                <table class="table table-hover table-striped weui-bb" style="font-size: 14px;">
+                    <tr>
+                        <th>激活码</th>
+                        <th>是否使用</th>
+                        <th>使用者</th>
+                        <th>时间</th>
                     </tr>
-                    </thead>
-                    <tbody>
                     <c:if test="${not empty userActivates}">
                         <c:forEach items="${userActivates}" var="userActivate">
                             <tr class="bg-info">
-                                <td style="font-size: 10px">${userActivate.activieCode}</td>
-                                <td style="font-size: 10px">已使用</td>
-                                <td style="font-size: 10px">${userActivate.userUsername}</td>
-                                <td style="font-size: 10px">${userActivate.useTime}</td>
+                                <td>${userActivate.activieCode}</td>
+                                <td class="weui-green">已使用</td>
+                                <td>${userActivate.userUsername}</td>
+                                <td>${userActivate.useTime}</td>
                             </tr>
                         </c:forEach>
                     </c:if>
-                    </tbody>
                 </table>
-                <%--<nav style="text-align: center">--%>
-                    <%--<ul class="pagination pagination-sm">--%>
-                        <%--<li><a href="#">共0页</a></li>--%>
-                        <%--<li><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>--%>
-                        <%--<li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>--%>
-                        <%--<li>--%>
-                            <%--<input type="text" class="input-mini" placeholder="0" style="width: 30px;float: left;height: 30px;" id="toPage"> <a href="javascript:gotoPageTO()">跳</a>--%>
-                        <%--</li>--%>
-                    <%--</ul>--%>
-                <%--</nav>--%>
             </div>
-        </div>
-        <div class="col-lg-1"></div>
-    </div>
-</div>
 
-<%--激活弹出框--%>
-<div class="modal fade" id="doActiveB" tabindex="-1" role="dialog" aria-labelledby="activatetitle">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="activatetitle">激活码</h4>
-            </div>
-            <div class="modal-body">
-                <form id="actiForm" method="post">
-                    <div class="form-group">
-                        <label class="control-label" for="activatecode">有效激活码</label>
-                        <input class="form-control" id="activatecode" name="activatecode" type="text" value=""
-                               required="">
-                    </div>
-                    <div class="form-actions">
-                        <button id="activatesub" class="btn btn-primary btn-block" onclick="return activateSub();">
-                            确定激活
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <%--<nav class="weui-t_c" aria-label="Page navigation">--%>
+                <%--<ul class="pagination">--%>
+                    <%--<li><a href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>--%>
+                    <%--<li class="active"><a href="#">1</a></li>--%>
+                    <%--<li><a href="#">2</a></li>--%>
+                    <%--<li><a href="#">3</a></li>--%>
+                    <%--<li><a href="#">4</a></li>--%>
+                    <%--<li><a href="#">5</a></li>--%>
+                    <%--<li><a href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>--%>
+                <%--</ul>--%>
+            <%--</nav>--%>
+
         </div>
     </div>
 </div>
-
 
 <script type="text/javascript">
 
@@ -141,5 +108,13 @@
         });
         return false;
     }
-
+    $(function() {
+        var validFlag = $("#currentUserValidFlag").val();
+        if(validFlag != "1") {
+            layer.alert("用户被冻结,请客服人员购买激活码激活账户!", {
+                offset:'25%',
+                closeBtn: 0
+            });
+        }
+    });
 </script>

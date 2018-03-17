@@ -376,7 +376,7 @@ public class FrontUserRegisterController extends BaseController {
 				frontUserMember.setBackWallet(0.00);
 				frontUserMember.setActiveCost(0.00);
 				TSConfigcodeEntity tsConfigcode =  tsConfigcodeServiceI.getConfigValue(OrderConstant.Sum_Limit);
-				String sumLimit = "10000000";
+				String sumLimit = "10000";
 				if(tsConfigcode != null) {
 					sumLimit = tsConfigcode.getConfigValue();
 				}
@@ -386,6 +386,9 @@ public class FrontUserRegisterController extends BaseController {
 				frontUserMember.setInserttimeforhis(now);
 				frontUserMember.setOperatetimeforhis(now);
 				frontUserMember.setNfield1(0.00); //第一次注入金额
+                frontUserMember.setNfield3(0.00);
+                frontUserMember.setNfield2(0.00);
+                frontUserMember.setNfield4(0.00);
 
 				List<FrontUserRegisterEntity> parentUsers = frontUserRegisterService.queryParentEntity(frontUserRegister.getIntroducer());
 				if(parentUsers != null && parentUsers.size()>0) {

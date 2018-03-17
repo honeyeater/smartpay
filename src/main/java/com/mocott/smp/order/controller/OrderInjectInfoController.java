@@ -2,18 +2,25 @@ package com.mocott.smp.order.controller;
 import com.mocott.smp.base.entity.TSConfigcodeEntity;
 import com.mocott.smp.base.service.TSConfigcodeServiceI;
 import com.mocott.smp.base.service.TSIndexServiceI;
+import com.mocott.smp.log.entity.LogPayInfoEntity;
 import com.mocott.smp.log.entity.LogTradeInfoEntity;
+import com.mocott.smp.log.service.LogPayInfoServiceI;
 import com.mocott.smp.log.service.LogTradeInfoServiceI;
 import com.mocott.smp.order.entity.OrderInjectInfoEntity;
 import com.mocott.smp.order.model.OrderInInfo;
 import com.mocott.smp.order.service.OrderInjectInfoServiceI;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.text.SimpleDateFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.mocott.smp.order.service.OrderInjectServiceI;
+import com.mocott.smp.trade.entity.UsdtPriceEntity;
+import com.mocott.smp.trade.entity.UserUsdtInfoEntity;
+import com.mocott.smp.trade.service.UsdtPriceServiceI;
+import com.mocott.smp.trade.service.UserUsdtInfoServiceI;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
 import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
@@ -114,6 +121,12 @@ public class OrderInjectInfoController extends BaseController {
 
 	@Autowired
 	private OrderInjectServiceI orderInjectService;
+	@Autowired
+    private UserUsdtInfoServiceI userUsdtInfoService;
+	@Autowired
+    private UsdtPriceServiceI usdtPriceService;
+	@Autowired
+    private LogPayInfoServiceI logPayInfoService;
 
     /**
      * 财务明细列表 页面跳转
@@ -142,6 +155,16 @@ public class OrderInjectInfoController extends BaseController {
 	 */
 	@RequestMapping(params = "toInjectList")
 	public ModelAndView toInjectList(HttpServletRequest request) {
+        //会员列表
+        HttpSession session = ContextHolderUtils.getSession();
+        FrontUserRegisterEntity user = (FrontUserRegisterEntity)session.getAttribute("currentUser");
+        List<OrderInjectInfoEntity> inlistAll = null;
+        try {
+            inlistAll = orderInjectInfoService.getListByUser(user.getUserName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        request.setAttribute("inlistAll", inlistAll);
 		return new ModelAndView("smp/order/injectListMain");
 	}
 
@@ -225,6 +248,9 @@ public class OrderInjectInfoController extends BaseController {
 			double baseTimesD = Double.parseDouble(baseTimes);
 			double baseValue = userMemberEntity.getNfield1(); //第一次注入金额
 
+            double sumLimit = userMemberEntity.getSumLimit(); //总限额
+            double useLimit = userMemberEntity.getUseLimit(); //已使用限额
+
 			//用户订单列表
 			List<OrderInjectInfoEntity> injectInfos = orderInjectInfoService.getListByUser(userName);
 			//有首付款\尾款未支付完成的订单,请完成后再次注入资金
@@ -273,7 +299,10 @@ public class OrderInjectInfoController extends BaseController {
 			} else if(baseValue >0 && baseValue != priceD) {
 				j.setMsg("再次注入金额必须与第一笔订单保持一致,请确认!");
 				j.setSuccess(false);
-			} else {
+			} else if((sumLimit-useLimit)<priceD) {
+                j.setMsg("您的账户的限额已不足,请联系客服购买激活码!");
+                j.setSuccess(false);
+            } else {
 				// 生成订单
 				OrderInInfo orderInInfo = new OrderInInfo();
 				orderInInfo.setUsername(userName);
@@ -500,6 +529,17 @@ public class OrderInjectInfoController extends BaseController {
 			} else {
 				String userName = frontUser.getUserName();
 				List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
+                UserUsdtInfoEntity userUsdtInfoEntity=  userUsdtInfoService.queryUserUsdtByUserName(userName);
+                UsdtPriceEntity usdtPrice = usdtPriceService.getNewPrice();
+                double num = 0;
+                double price = 0;
+                double payNum = 0;
+                if(userUsdtInfoEntity != null) {
+                    num = userUsdtInfoEntity.getNum();
+                }
+                if(usdtPrice != null) {
+                    price = usdtPrice.getPrice();
+                }
 				OrderInjectInfoEntity orderInject = null;
 				if(orderInList != null && orderInList.size()>0) {
 					orderInject = orderInList.get(0);
@@ -515,8 +555,14 @@ public class OrderInjectInfoController extends BaseController {
 							j.setMsg(message);
 							j.setSuccess(false);
 						} else {
-							j.setMsg(message);
+                            double f1 = getPayNum(orderInject.getFirstPay(), price);
+                            Map<String, Object> attrs = new HashMap<String, Object>();
+                            attrs.put("payNum", f1);
+                            attrs.put("price", price);
+                            attrs.put("myNum", num);
+						    j.setMsg(message);
 							j.setObj(orderInject.getFirstPay());
+							j.setAttributes(attrs);
 							j.setSuccess(true);
 						}
 					} else if("2".equals(orderType)) {
@@ -525,8 +571,14 @@ public class OrderInjectInfoController extends BaseController {
 							j.setMsg(message);
 							j.setSuccess(false);
 						} else {
+                            double f1 = getPayNum(orderInject.getEndPay(), price);
+                            Map<String, Object> attrs = new HashMap<String, Object>();
+                            attrs.put("payNum", f1);
+                            attrs.put("price", price);
+                            attrs.put("myNum", num);
 							j.setMsg(message);
 							j.setObj(orderInject.getEndPay());
+                            j.setAttributes(attrs);
 							j.setSuccess(true);
 						}
 					}
@@ -542,6 +594,13 @@ public class OrderInjectInfoController extends BaseController {
 		}
 		return j;
 	}
+
+	private double getPayNum(double payPrice, double price) {
+        double payNum = payPrice/price;
+        BigDecimal b = new BigDecimal(payNum);
+        double f1 = b.setScale(3, BigDecimal.ROUND_UP).doubleValue();
+        return f1;
+    }
 
 	/**
 	 * 支付确认
@@ -563,10 +622,18 @@ public class OrderInjectInfoController extends BaseController {
 		try {
 			String orderCode = request.getParameter("payOrderCode");
 			String orderType = request.getParameter("payOrderType");
+			String payUsdtNum = request.getParameter("payUsdtNum");
+			String payUsdtPrice = request.getParameter("payUsdtPrice");
+			String myUsdtNum = request.getParameter("myUsdtNum");
+
 			String userName = frontUser.getUserName();
 			List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
 			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
 			FrontUserMemberEntity userMemberParent = frontUserMemberServiceI.queryEntityByUserName(frontUser.getIntroducer());
+            UserUsdtInfoEntity userUsdtInfoEntity=  userUsdtInfoService.queryUserUsdtByUserName(userName);
+            UsdtPriceEntity usdtPrice = usdtPriceService.getNewPrice();
+            double price = usdtPrice.getPrice();
+            double mynum = userUsdtInfoEntity.getNum();
 
 			OrderInjectInfoEntity orderInject = null;
 			if(orderInList != null && orderInList.size()>0) {
@@ -576,15 +643,32 @@ public class OrderInjectInfoController extends BaseController {
 				message = "订单信息无效,请联系管理员!";
 				j.setMsg(message);
 				j.setSuccess(false);
-			} else {
+			} else if(StringUtil.isEmpty(payUsdtPrice) || Double.parseDouble(payUsdtPrice)!=price) {
+                message = "USDT价格与最新USDT价格不一致，请刷新页面重试!";
+                j.setMsg(message);
+                j.setSuccess(false);
+            } else {
 				if("1".equals(orderType)) {
-					if(StringUtil.isNotEmpty(orderInject.getFirstPayTime())) { //支付首付款
+				    double f1 = getPayNum(orderInject.getFirstPay(), price);
+				    if(mynum<f1) {
+                        message = "您的USDT数量不足,请于交易中心买入!";
+                        j.setMsg(message);
+                        j.setSuccess(false);
+                    } else if(StringUtil.isNotEmpty(orderInject.getFirstPayTime())) { //支付首付款
 						message = "订单首付款已支付,请刷新页面查看!";
 						j.setMsg(message);
-						j.setSuccess(false);
+                        j.setSuccess(false);
 					} else {
 						orderInject.setFirstPayTime(new Date());
-						orderInject.setOrderStatus(OrderConstant.Order_Final_Pay);
+						//更新周期时间
+                        orderInject.setWaitStartTime(new Date()); //周期开始时间
+                        String inter = tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Cycle) != null ?
+                                tSConfigcodeServiceI.getConfigValue(OrderConstant.Period_Cycle).getConfigValue():"480";
+                        orderInject.setWaitInternal(inter); //周期时间
+                        if(inter != null) {
+                            orderInject.setWaitEndTime(DateUtils.getDateAdd(Integer.parseInt(inter),orderInject.getWaitStartTime()));
+                        }
+						orderInject.setOrderStatus(OrderConstant.Order_Period_Finish); //进入周期中
 						orderInjectInfoService.save(orderInject); //保存
                         // 生成财务交易信息
                         LogTradeInfoEntity logTradeInfo = new LogTradeInfoEntity();
@@ -607,12 +691,33 @@ public class OrderInjectInfoController extends BaseController {
                         logTradeInfo.setOperatetimeforhis(new Date());
                         logTradeInfoServiceI.save(logTradeInfo);
 
+                        userMember.setVfield2("1"); //可提取
+                        frontUserMemberServiceI.saveOrUpdate(userMember);
+
+                        // 支付信息记录
+                        LogPayInfoEntity logPayInfoEntity = new LogPayInfoEntity();
+                        logPayInfoEntity.setUsername(userName);
+                        logPayInfoEntity.setSerialno("1");
+                        logPayInfoEntity.setOrderCode(orderInject.getOrderCode());
+                        logPayInfoEntity.setPayTime(new Date());
+                        logPayInfoEntity.setPayMoney(f1);
+                        logPayInfoEntity.setDealMoney(price);
+                        logPayInfoEntity.setNfield1(mynum);
+                        logPayInfoService.save(logPayInfoEntity);
+
+                        userUsdtInfoEntity.setNum(userUsdtInfoEntity.getNum()-f1);
+                        userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
 						j.setMsg(message);
 						j.setObj(orderInject.getFirstPay());
 						j.setSuccess(true);
 					}
 				} else if("2".equals(orderType)) {
-					if(StringUtil.isNotEmpty(orderInject.getEndPayTime())) { //支付尾款
+                    double f1 = getPayNum(orderInject.getEndPay(), price);
+                    if(mynum<f1) {
+                        message = "您的USDT数量不足,请于交易中心买入!";
+                        j.setMsg(message);
+                        j.setSuccess(false);
+                    } else if(StringUtil.isNotEmpty(orderInject.getEndPayTime())) { //支付尾款
 						message = "订单尾款已支付,请刷新页面查看";
 						j.setMsg(message);
 						j.setSuccess(false);
@@ -681,6 +786,19 @@ public class OrderInjectInfoController extends BaseController {
                             logTradeInfoServiceI.save(logTradeInfo2);
 						}
 
+						// 支付信息记录
+                        LogPayInfoEntity logPayInfoEntity = new LogPayInfoEntity();
+						logPayInfoEntity.setUsername(userName);
+                        logPayInfoEntity.setSerialno("1");
+                        logPayInfoEntity.setOrderCode(orderInject.getOrderCode());
+                        logPayInfoEntity.setPayTime(new Date());
+                        logPayInfoEntity.setPayMoney(f1);
+                        logPayInfoEntity.setDealMoney(price);
+                        logPayInfoEntity.setNfield1(mynum);
+                        logPayInfoService.save(logPayInfoEntity);
+
+						userUsdtInfoEntity.setNum(userUsdtInfoEntity.getNum()-f1);
+						userUsdtInfoService.saveOrUpdate(userUsdtInfoEntity);
 						orderInjectInfoService.save(orderInject); //保存
 						j.setMsg(message);
 						j.setObj(orderInject.getEndPay());
@@ -729,6 +847,13 @@ public class OrderInjectInfoController extends BaseController {
 			String orderCode = request.getParameter("payOrderCode");
 			String orderType = null;
 			List<OrderInjectInfoEntity> undoneList = orderInjectInfoService.getUndoneList(userName);
+            boolean hasUndoneOrder = false;
+			if(undoneList != null && undoneList.size()>0) {
+                if(undoneList.size() ==1 && undoneList.get(0).getOrderCode().equals(orderCode)) {
+                } else {
+                    hasUndoneOrder = true;
+                }
+            }
 
 			List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
 			OrderInjectInfoEntity orderInject = null;
@@ -739,13 +864,13 @@ public class OrderInjectInfoController extends BaseController {
 				message = "订单信息无效,请联系管理员!";
 				j.setMsg(message);
 				j.setSuccess(false);
-			} else if(undoneList == null || undoneList.size()==0){
-				message = "提取前请先注入资金!";
+			} else if(!hasUndoneOrder){
+				message = "订单在保存期请先注入资金，否则会被封号!";
 				j.setMsg(message);
 				j.setSuccess(false);
 			} else {
 				if(StringUtil.isNotEmpty(orderInject.getDfield1())) { //提现时间
-					message = "订单已进行过提现,请刷新页面查看!";
+					message = "订单已转入到钱包,请刷新页面查看!";
 					j.setMsg(message);
 					j.setSuccess(false);
 				} else {

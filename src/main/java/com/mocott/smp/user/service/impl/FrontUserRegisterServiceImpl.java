@@ -54,10 +54,16 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
      */
     @Override
     public FrontUserRegisterEntity checkUserExits(FrontUserRegisterEntity user) {
-        String password = PasswordUtil.encrypt(user.getUserName(), user.getPassword(), PasswordUtil.getStaticSalt());
-        String query = "from FrontUserRegisterEntity u where u.userName = :username and u.password=:passowrd";
+        FrontUserRegisterEntity userRegist = this.queryEntityByPhoneNo(user.getUserName());
+        String userName = user.getUserName();
+        if(userRegist != null) {
+            userName = userRegist.getUserName();
+        }
+        String password = PasswordUtil.encrypt(userName, user.getPassword(), PasswordUtil.getStaticSalt());
+        String query = " from FrontUserRegisterEntity u where (u.userName = :username or u.phoneno=:phoneno) and u.password=:passowrd";
         Query queryObject = getSession().createQuery(query);
         queryObject.setParameter("username", user.getUserName());
+        queryObject.setParameter("phoneno", user.getUserName());
         queryObject.setParameter("passowrd", password);
         List<FrontUserRegisterEntity> users = queryObject.list();
 
@@ -67,6 +73,8 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
             queryObject = getSession().createQuery(query);
             queryObject.setParameter("username", user.getUserName());
             queryObject.setParameter("passowrd", user.getPassword());
+            queryObject.setParameter("phoneno", user.getUserName());
+
             users = queryObject.list();
             if(users != null && users.size() > 0){
                 return users.get(0);

@@ -9,7 +9,7 @@ public class OrderConstant {
     public static String Order_First_Pay = "01"; //待支付首付款
     public static String Order_Final_Pay = "02"; //待支付尾款(周期结束后,进入到尾款支付)
     public static String Order_Confirm_Period = "03"; //回流中  //保存期
-    public static String Order_Period_Finish = "04"; //回流完毕待提取
+    public static String Order_Period_Finish = "04"; //周期中
     public static String Order_Done = "05"; //已完成
 
     // 提取资金订单状态

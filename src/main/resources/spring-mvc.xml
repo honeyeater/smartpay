@@ -129,6 +129,7 @@
 						<value>frontUserRegisterController.do?doAdd</value>
 						<value>frontUserRegisterController.do?doResetPwd</value>
 						<value>frontUserRegisterController.do?goForget</value>
+						<value>frontUserActivatecodeController.do?doAct</value>
 						<value>repairController.do?repair</value>
 						<value>systemController.do?saveFiles</value>
 						<value>repairController.do?deleteAndRepair</value>

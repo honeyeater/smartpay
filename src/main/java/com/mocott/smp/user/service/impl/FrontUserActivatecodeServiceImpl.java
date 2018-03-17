@@ -3,9 +3,11 @@ import com.mocott.smp.base.entity.TSConfigcodeEntity;
 import com.mocott.smp.base.service.TSConfigcodeServiceI;
 import com.mocott.smp.user.entity.FrontStorageActivatecodeEntity;
 import com.mocott.smp.user.entity.FrontUserMemberEntity;
+import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontStorageActivatecodeServiceI;
 import com.mocott.smp.user.service.FrontUserActivatecodeServiceI;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
+import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import com.mocott.smp.util.OrderConstant;
 import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
@@ -31,6 +33,8 @@ public class FrontUserActivatecodeServiceImpl extends CommonServiceImpl implemen
 	private TSConfigcodeServiceI tsConfigcodeService;
 	@Autowired
 	private FrontUserMemberServiceI frontUserMemberService;
+	@Autowired
+    private FrontUserRegisterServiceI frontUserRegisterService;
 	
  	public void delete(FrontUserActivatecodeEntity entity) throws Exception{
  		super.delete(entity);
@@ -104,6 +108,7 @@ public class FrontUserActivatecodeServiceImpl extends CommonServiceImpl implemen
 		frontStorageActivatecode.setOperatetimeforhis(now);
 
 		FrontUserMemberEntity userMember = frontUserMemberService.queryEntityByUserName(userName);
+
 		String activieType = frontStorageActivatecode.getActivieType();
 		if("1".equals(activieType) || "2".equals(activieType)) { //100元类别 500类别
 			TSConfigcodeEntity tsConfigcodeEntity = null;
@@ -119,6 +124,11 @@ public class FrontUserActivatecodeServiceImpl extends CommonServiceImpl implemen
 				frontUserMemberService.saveOrUpdate(userMember);
 			}
 		}
+		if("3".equals(activieType)) { //解冻激活码
+           FrontUserRegisterEntity user = frontUserRegisterService.queryEntityByUserName(userName);
+           user.setValidFlag("1");
+           frontUserRegisterService.saveOrUpdate(user);
+        }
 
 
 		this.save(userActivatecode);

@@ -3,212 +3,297 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>金润智能理财用户注册</title>
+    <title><t:mutiLang langKey="jeect.platform"/></title>
     <%--<t:base type="jquery,easyui,tools,DatePicker"></t:base>--%>
     <!--bootstrape-->
     <link href="plug-in/bootstrap3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="shortcut icon" href="images/favicon.ico">
     <link href="plug-in/bootstrap3/validate/css/bootstrapValidator.min.css" rel="stylesheet">
-    <link href="plug-in/webfront/css/common.css" rel="stylesheet">
+    <link href="plug-in/smp/css/style.css" type="text/css" rel="stylesheet">
     <script src="plug-in/ace/assets/js/jquery-2.0.3.min.js"></script>
     <script src="plug-in/bootstrap3/js/bootstrap.min.js"></script>
     <script src="plug-in/bootstrap3/validate/js/bootstrapValidator.js"></script>
     <script src="plug-in/bootstrap3/validate/js/language/zh_CN.js"></script>
     <script src="plug-in-ui/hplus/js/plugins/layer/layer.min.js"></script>
 
-    <style>
-        body {
-            background: white;
-            padding: 0px;
-        }
-    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="navbar navbar-inverse">
-            <div class="container col-lg-4 col-lg-offset-4">
-                <div class="navbar-header">
-                    <a class="navbar-brand" href="#" style="color: white"><strong>欢迎注册金润智能理财系统</strong></a>
-                </div>
-            </div>
+<div class="lo_top weui-pt30 weui-pb30">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6"><a href="#"><img src="plug-in/smp/images/logo1.png"></a></div>
+            <div class="col-md-6 weui-pt15 weui-t_r weui-white">已有账号，<a href="userLoginController.do?login" class="weui-yellow">立即登录</a></div>
         </div>
     </div>
+</div>
+<div class="re_bg">
     <div class="container">
-        <form class="form-horizontal required-validate form-signin"
-              onsubmit="return validateCallback(this)" id="registform">
-            <input id="id" name="id" type="hidden" value="${userPage.id }">
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="introducer">推荐人:</label>
-                <div class="col-lg-4">
-                    <input id="introducer" name="introducer" type="text" class="form-control" ignore="ignore" value="${userPage.userName}" readonly/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="userName">用户名:</label>
-                <div class="col-lg-4">
-                    <input id="userName" name="userName" type="text" class="form-control" ignore="ignore" style="width: 60%;display:inline;" readonly/>
-                    <input type="button" value="更换" name="changeUserName" onclick="generalUserName();" class="btn btn-success form-control pull-right" style="width: 36%;display:inline;">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="phoneno">手机号:</label>
-                <div class="col-lg-4">
-                    <input id="phoneno" name="phoneno" type="text" class="form-control" ignore="ignore" placeholder="手机号"/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="identityNo">身份证号:</label>
-                <div class="col-lg-4">
-                    <input id="identityNo" name="identityNo" type="text"  class="form-control" ignore="ignore" placeholder="身份证号"
-                           required />
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="realname">真实姓名:</label>
-                <div class="col-lg-4">
-                    <input id="realname" name="realname" type="text"  class="form-control" ignore="ignore" placeholder="真实姓名"/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div data-toggle="distpicker">
-                <div class="form-group">
-                    <label class="col-lg-2 col-lg-offset-2 control-label" for="province">银行省份:</label>
-                    <div class="col-lg-4">
-                        <%--<input id="province" name="province" type="text"  class="form-control" ignore="ignore"/>--%>
-                        <%--<span class="Validform_checktip"></span>--%>
-                        <select class="form-control" id="province" name="province">
-                        </select>
+        <div class="row">
+            <form class="form-horizontal required-validate form-signin"
+                  onsubmit="return validateCallback(this)" id="registform">
+            <div class="col-md-8 col-md-push-2">
+                <div class="weui-bgf weui-p20 weui-bod_r">
+                    <h3 class="lo_title weui-f_b weui-bb weui-t_c"><span class="weui-dnb weui-pl15 weui-pr15">注册</span></h3>
+                    <div class=" weui-bb">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">推荐人：</td>
+                                            <td class="weui-pb15">
+                                                <input id="introducer" name="introducer" type="text" class="form-control" ignore="ignore" value="${userPage.userName}" readonly/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">真实姓名：</td>
+                                            <td class="weui-pb15 weui-p_r form-group">
+                                                <input id="realname" name="realname" type="text"  class="form-control" ignore="ignore" placeholder=""/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">手机号：</td>
+                                            <td class="weui-pb15 form-group">
+                                                    <input id="phoneno" name="phoneno" type="text" class="form-control" ignore="ignore" placeholder=""/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">用户名：</td>
+                                            <td class="weui-pb15">
+                                                <div class="input-group">
+                                                    <input id="userName" name="userName" type="text" class="form-control" ignore="ignore" readonly/>
+                                                    <span class="input-group-btn">
+                                                    <button class="btn btn-default weui-bgcolor" type="button" name="changeUserName" onclick="generalUserName();">更换</button>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">身份证号：</td>
+                                            <td class="weui-pb15 weui-p_r form-group">
+                                                <input id="identityNo" name="identityNo" type="text"  class="form-control" ignore="ignore" placeholder=""
+                                                       required />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r"></td>
+                                            <td class="weui-pb15">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-lg-2 col-lg-offset-2 control-label" for="city">银行城市:</label>
-                    <div class="col-lg-4">
-                        <%--<input id="city" name="city" type="text"  class="form-control" ignore="ignore"/>--%>
-                        <%--<span class="Validform_checktip"></span>--%>
-                        <select class="form-control" id="city" name="city">
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="bankCode">开户银行:</label>
-                <div class="col-lg-4">
-                    <select id="bankCode" name="bankCode" class="form-control">
-                        <option></option>
-                        <option value="中国人民银行">中国人民银行</option>
-                        <option value="中国工商银行">中国工商银行</option>
-                        <option value="中国工商银行">中国工商银行</option>
-                        <option value="中国银行">中国银行</option>
-                        <option value="中国建设银行">中国建设银行</option>
-                        <option value="中国进出口银行">中国进出口银行</option>
-                        <option value="交通银行">交通银行</option>
-                        <option value="中信银行">中信银行</option>
-                        <option value="中国光大银行">中国光大银行</option>
-                        <option value="华夏银行">华夏银行</option>
-                        <option value="中国民生银行">中国民生银行</option>
-                        <option value="广东发展银行">广东发展银行</option>
-                        <option value="深圳发展银行">深圳发展银行</option>
-                        <option value="招商银行">招商银行</option>
-                        <option value="兴业银行">兴业银行</option>
-                        <option value="农村商业银行">农村商业</option>
-                        <option value="恒丰银行">恒丰银行</option>
-                        <option value="浙商银行">浙商银行</option>
-                        <option value="农村合作银行">农村合作银行</option>
-                        <option value="渤海银行">渤海银行</option>
-                        <option value="徽商银行">徽商银行</option>
-                        <option value="城市信用社">城市信用社</option>
-                        <option value="农村信用联社">农村信用联社</option>
-                        <option value="中国邮政储蓄银行">中国邮政储蓄银行</option>
-                        <option value="恒生银行">恒生银行</option>
-                        <option value="平安银行">平安银行</option>
-                        <option value="华商银行">华商银行</option>
-                        <option value="青岛国际银行">青岛国际银行</option>
-                        <option value="华一银行">华一银行</option>
-                        <option value="宁波银行">宁波银行</option>
-                        <option value="杭州银行">杭州银行</option>
-                        <option value="深圳农村银行">深圳农村银行</option>
-                        <option value="南京银行">南京银行</option>
-                        <option value="上海银行">上海银行</option>
-                        <option value="北京银行">北京银行</option>
-                        <option value="齐鲁银行">齐鲁银行</option>
-                        <option value="成都银行">成都银行</option>
-                        <option value="烟台银行">烟台银行</option>
-                        <option value="河北银行">河北银行</option>
-                        <option value="湖北银行">湖北银行</option>
-                        <option value="天津银行">天津银行</option>
-                        <option value="大连银行">大连银行</option>
-                        <option value="重庆银行">重庆银行</option>
-                        <option value="东莞银行">东莞银行</option>
-                        <option value="哈尔滨银行">哈尔滨银行</option>
-                        <option value="包商银行">包商银行</option>
-                        <option value="南昌银行">南昌银行</option>
-                        <option value="兰州银行">兰州银行</option>
-                        <option value="青岛银行">青岛银行</option>
-                        <option value="齐商银行">齐商银行</option>
-                        <option value="温州银行">温州银行</option>
-                        <option value="宁夏银行">宁夏银行</option>
-                        <option value="临商银行">临商银行</option>
-                        <option value="富滇银行">富滇银行</option>
-                        <option value="长沙银行">长沙银行</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="bankCard">银行卡号:</label>
-                <div class="col-lg-4">
-                    <input id="bankCard" name="bankCard" type="text"  class="form-control" ignore="ignore"/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="bankAddress">银行详细地址:</label>
-                <div class="col-lg-4">
-                    <input id="bankAddress" name="bankAddress" type="text"  class="form-control"
-                           ignore="ignore"/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="password">登录密码:</label>
-                <div class="col-lg-4">
-                    <input id="password" name="password" type="password"  class="form-control" ignore="ignore"/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="safePassword">安全密码:</label>
-                <div class="col-lg-4">
-                    <input id="safePassword" name="safePassword" type="password"  class="form-control"
-                           ignore="ignore"/>
-                    <span class="Validform_checktip"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="validCode">验证码:</label>
-                <div class="col-lg-4">
-                    <input id="validCode" name="validCode" type="text"  class="form-control" ignore="ignore" style="width: 60%;display:inline;"/>
-                    <img id="codeImg" alt="看不清?点击切换" src="randCodeImage" class="pull-right" style="width: 32%;display:inline; height: 32px;">
-                </div>
-            </div>
 
-            <div class="form-group">
-                <label class="col-lg-2 col-lg-offset-2 control-label" for="phoneValidCode">手机验证码:</label>
-                <div class="col-lg-4">
-                    <input id="phoneValidCode" name="phoneValidCode" type="text"  class="form-control" ignore="ignore" style="width: 60%;display:inline;"/>
-                    <input type="button" value="获取手机验证码" name="getValidCode" id="getValidCode" onclick="generalValidCode(this);" class="btn btn-success  pull-right" style="width: 32%;display:inline;">
-                    <span class="Validform_checktip"></span>
+                    <div class=" weui-bb">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20" data-toggle="distpicker">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">银行省份：</td>
+                                            <td class="weui-pb15 form-group">
+                                                <select class="form-control" id="province" name="province">
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">银行城市：</td>
+                                            <td class="weui-pb15 form-group">
+                                                <select class="form-control" id="city" name="city">
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">银行卡号：</td>
+                                            <td class="weui-pb15 form-group"><input id="bankCard" name="bankCard" type="text"  class="form-control" ignore="ignore"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">开户银行：</td>
+                                            <td class="weui-pb15 form-group">
+                                                <select id="bankCode" name="bankCode" class="form-control">
+                                                    <option></option>
+                                                    <option value="中国人民银行">中国人民银行</option>
+                                                    <option value="中国工商银行">中国工商银行</option>
+                                                    <option value="中国农业银行">中国农业银行</option>
+                                                    <option value="中国银行">中国银行</option>
+                                                    <option value="中国建设银行">中国建设银行</option>
+                                                    <option value="中国进出口银行">中国进出口银行</option>
+                                                    <option value="交通银行">交通银行</option>
+                                                    <option value="中信银行">中信银行</option>
+                                                    <option value="中国光大银行">中国光大银行</option>
+                                                    <option value="华夏银行">华夏银行</option>
+                                                    <option value="中国民生银行">中国民生银行</option>
+                                                    <option value="广东发展银行">广东发展银行</option>
+                                                    <option value="深圳发展银行">深圳发展银行</option>
+                                                    <option value="招商银行">招商银行</option>
+                                                    <option value="兴业银行">兴业银行</option>
+                                                    <option value="农村商业银行">农村商业</option>
+                                                    <option value="恒丰银行">恒丰银行</option>
+                                                    <option value="浙商银行">浙商银行</option>
+                                                    <option value="农村合作银行">农村合作银行</option>
+                                                    <option value="渤海银行">渤海银行</option>
+                                                    <option value="徽商银行">徽商银行</option>
+                                                    <option value="城市信用社">城市信用社</option>
+                                                    <option value="农村信用联社">农村信用联社</option>
+                                                    <option value="中国邮政储蓄银行">中国邮政储蓄银行</option>
+                                                    <option value="恒生银行">恒生银行</option>
+                                                    <option value="平安银行">平安银行</option>
+                                                    <option value="华商银行">华商银行</option>
+                                                    <option value="青岛国际银行">青岛国际银行</option>
+                                                    <option value="华一银行">华一银行</option>
+                                                    <option value="宁波银行">宁波银行</option>
+                                                    <option value="杭州银行">杭州银行</option>
+                                                    <option value="深圳农村银行">深圳农村银行</option>
+                                                    <option value="南京银行">南京银行</option>
+                                                    <option value="上海银行">上海银行</option>
+                                                    <option value="北京银行">北京银行</option>
+                                                    <option value="齐鲁银行">齐鲁银行</option>
+                                                    <option value="成都银行">成都银行</option>
+                                                    <option value="烟台银行">烟台银行</option>
+                                                    <option value="河北银行">河北银行</option>
+                                                    <option value="湖北银行">湖北银行</option>
+                                                    <option value="天津银行">天津银行</option>
+                                                    <option value="大连银行">大连银行</option>
+                                                    <option value="重庆银行">重庆银行</option>
+                                                    <option value="东莞银行">东莞银行</option>
+                                                    <option value="哈尔滨银行">哈尔滨银行</option>
+                                                    <option value="包商银行">包商银行</option>
+                                                    <option value="南昌银行">南昌银行</option>
+                                                    <option value="兰州银行">兰州银行</option>
+                                                    <option value="青岛银行">青岛银行</option>
+                                                    <option value="齐商银行">齐商银行</option>
+                                                    <option value="温州银行">温州银行</option>
+                                                    <option value="宁夏银行">宁夏银行</option>
+                                                    <option value="临商银行">临商银行</option>
+                                                    <option value="富滇银行">富滇银行</option>
+                                                    <option value="长沙银行">长沙银行</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">银行详细地址：</td>
+                                            <td class="weui-pb15 form-group">
+                                            <input id="bankAddress" name="bankAddress" type="text" class="form-control"
+                                                   ignore="ignore"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r"></td>
+                                            <td class="weui-pb15">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class=" weui-bb">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">支付宝账号：</td>
+                                            <td class="weui-pb15 form-group">
+                                                <input type="text" class="form-control" placeholder="" id="vfield3" name="vfield3">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">支付宝名称：</td>
+                                            <td class="weui-pb15 form-group">
+                                                <input type="text" class="form-control" placeholder="" id="vfield4" name="vfield4">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class=" weui-bb">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">登录密码：</td>
+                                            <td class="weui-pb15  form-group">
+                                                <input id="password" name="password" type="password"  class="form-control" ignore="ignore"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">验证码：</td>
+                                            <td class="weui-pb15 weui-p_r  form-group">
+                                                <img id="codeImg" alt="看不清?点击切换" src="randCodeImage" class="yzm" style="width: 76px; height: 27px;">
+                                                <input id="validCode" name="validCode" type="text"  class="form-control" placeholder=""></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class=" weui-pb10 weui-pt20">
+                                    <table width="100%">
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r" width="100">安全密码：</td>
+                                            <td class="weui-pb15 form-group">
+                                                <input id="safePassword" name="safePassword" type="password"  class="form-control"
+                                                       ignore="ignore"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="weui-pb15 weui-t_r">手机验证码：</td>
+                                            <td class="weui-pb15 weui-p_r form-group">
+                                                <div class="input-group">
+                                                    <input id="phoneValidCode" name="phoneValidCode" type="text"  class="form-control" placeholder="">
+                                                    <span class="input-group-btn">
+                                                    <button class="btn btn-success" type="button" name="getValidCode" id="getValidCode" onclick="generalValidCode(this);">获取验证码</button>
+                                                </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 col-md-push-4">
+                            <div class=" weui-mt20 weui-pb20">
+                                <input type="submit" class="btn btn-block btn-warning weui-f20" style="color:#3e2e0a;" value="立即注册">
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
-            <div class="form-group">
-                <div class="col-lg-offset-4 col-lg-4">
-                    <button type="submit" class="btn btn-success btn-lg btn-block">注册</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-
+</div>
+<div class="weui-t_c weui-pt30 weui-pb30 weui-c_9">JR智能理财有限公司版权所有</div>
 
 </body>
 <script src="webpage/smp/user/frontUserRegister.js"></script>
@@ -221,15 +306,16 @@
         $("form.required-validate").each(function() {
             var $form = $(this);
             $form.bootstrapValidator({
+                container: 'tooltip',
                 live: 'disabled',//验证时机，enabled是内容有变化就验证（默认），disabled和submitted是提交再验证
                 excluded: [':disabled', ':hidden', ':not(:visible)'],//排除无需验证的控件，比如被禁用的或者被隐藏的
 //                submitButtons: '#btn-test',//指定提交按钮，如果验证失败则变成disabled，但我没试成功，反而加了这句话非submit按钮也会提交到action指定页面
                 message: '通用的验证失败消息',//好像从来没出现过
-//                feedbackIcons: {//根据验证结果显示的各种图标
-//                    valid: 'glyphicon glyphicon-ok',
-//                    invalid: 'glyphicon glyphicon-remove',
-//                    validating: 'glyphicon glyphicon-refresh'
-//                },
+                feedbackIcons: {//根据验证结果显示的各种图标
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
                 fields: {
                     phoneno: {
                         validators: {
@@ -291,6 +377,20 @@
                             }
                         }
                     },
+                    vfield3: {
+                        validators: {
+                            notEmpty: {
+                                message: '支付宝账号不能为空'
+                            }
+                        }
+                    },
+                    vfield4: {
+                        validators: {
+                            notEmpty: {
+                                message: '支付宝名称不能为空'
+                            }
+                        }
+                    },
                     password: {
                         validators: {
                             notEmpty: {
@@ -310,7 +410,7 @@
                     safePassword: {
                         validators: {
                             notEmpty: {
-                                message: '登录密码不能为空'
+                                message: '安全密码不能为空'
                             },
                             stringLength: {//检测长度
                                 min: 6,

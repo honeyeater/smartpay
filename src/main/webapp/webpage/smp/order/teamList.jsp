@@ -1,90 +1,89 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<div class="container" id="teamList">
-    <div class="row" style="margin-top: 20px">
-        <div class="col-sm-1"></div>
-        <div class="col-sm-10">
-            <div class="col-sm-12" style="background:rgba(250,250,250,0.5);padding-top: 20px">
-                <form action="orderInjectInfoController.do?toTeamList" method="post" style="min-height: 30px">
-                    <div class="col-sm-5">
-                        <div class="form-group">
-                            <label class="col-md-2 control-label" style="line-height: 30px; padding: 0px;">会员名称</label>
-                            <div class="input-group date col-md-10">
-                                <input class="form-control" size="16" type="text" name="un" value="">
+<div class="weui-p20">
+    <div class=" weui-bgf weui-bod_r">
+        <h3 class="weui-f16 weui-f_b title">团队业绩</h3>
+        <div class="p10 box_h">
+            <form action="orderInjectInfoController.do?toTeamList" method="post" style="min-height: 30px">
+            <div class="form-inline weui-pt10">
+                <div class="form-group">会员名称：</div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <input class="form-control" size="16" type="text" name="un" value="">
+                        <span class="input-group-addon" id="basic-addon2"><i class="glyphicon glyphicon-user weui-c_9"></i></span>
+                    </div>
+                </div>
+                <%--<div class="form-group"> 排单时间：</div>--%>
+                <%--<div class="form-group">--%>
+                    <%--<div class="input-group">--%>
+                        <%--<input type="text" class="form-control" placeholder=""  onClick="WdatePicker()">--%>
+                        <%--<span class="input-group-addon" id="basic-addon2"><i class="glyphicon glyphicon-calendar weui-c_9"></i></span>--%>
+                    <%--</div>--%>
+                <%--</div>--%>
+                <div class="form-group"><input type="submit" value="搜索" class="btn btn-warning2 weui-pl30 weui-pr30"></div>
+            </div>
+            </form>
+
+            <p class="weui-f_b weui-orange weui-pt15 txt_color">本页为会员（${users}）的订单记录</p>
+            <div class="row">
+                <c:if test="${not empty orders}">
+                    <c:forEach items="${orders}" var="order">
+                        <div class="col-md-12">
+                            <div class="dd_box weui-mb15">
+                                <h3 class="weui-f16 weui-f_b title title1">订单编号	${order.orderCode}</h3>
+                                <div class="weui-pl15 weui-pt10 weui-pb10 weui-pr15">
+                                    <table class="weui-lh30" width="100%" style="font-size: 14px;">
+                                        <tr>
+                                            <td width="70" class="weui-v_t">参与会员</td>
+                                            <td>${order.username}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>订单金额</td>
+                                            <td class="weui-red"> ${order.orderMoney}CNY</td>
+                                        </tr>
+                                        <tr>
+                                            <td>排单时间</td>
+                                            <td>${order.orderTime}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </c:forEach>
+                </c:if>
+                <c:if test="${empty orders}">
+                    <div class="col-md-12">
+                        <div class="dd_box weui-mb15">
+                            <h3 class="weui-f16 weui-f_b title title1">订单编号	${order.orderCode}</h3>
+                            <div class="weui-pl15 weui-pt10 weui-pb10 weui-pr15">
+                                <table class="weui-lh30" width="100%" style="font-size: 14px;">
+                                    <tr>
+                                        <td>暂无订单记录</td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-2">
-                        <button type="submit" class="btn btn-primary">搜索</button>
-                    </div>
-                </form>
-            </div>
-            <div style="clear: both"></div>
-            <div class="panel panel-success">
-                <div class="panel-heading">
-                    <a href="javascript:showPList();"> <h3 class="panel-title" style="text-align: center">
-                        团队业绩 <i id="pList" class="glyphicon glyphicon-triangle-bottom"></i></h3>
-                    </a>
-                    <p style="text-align: center">本页为会员（${users}）的订单记录</p>
-                </div>
-                <div class="panel-body" style="padding: 5px" id="pListHolder">
-                    <c:if test="${not empty orders}">
-                        <c:forEach items="${orders}" var="order">
-                            <table class="table " style="border-radius: 10px;margin-top:5px;margin-bottom:5px;width: 100%;background-color:  white ">
-                                <thead style="border:none">
-                                <tr style="border:none">
-                                    <th style="border:none">订单编号</th>
-                                    <th style="border:none">${order.orderCode}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td style="border:none">参与会员</td>
-                                    <td style="border:none">${order.username}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border:none">
-                                        订单金额
-                                    </td>
-                                    <td style="border:none">
-                                        ${order.orderMoney}CNY
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="border:none">
-                                        排单时间
-                                    </td>
-                                    <td style="border:none">
-                                        ${order.orderTime}
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </c:forEach>
-                    </c:if>
-                    <c:if test="${empty orders}">
-                        <span style="text-align: center">暂无订单记录</span>
-                    </c:if>
+                </c:if>
 
 
-                    <div style="width: 100%;text-align: center">
-                        <nav style="text-align: center">
-                            <ul class="pagination pagination-sm">
-                                <li><a href="#">共1页</a></li>
-                                <li><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
-                                <li class="active">
-                                    <a href="#">1</a>
-                                </li>
-                                <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
-                                <li>
-                                    <input type="text" class="input-mini" placeholder="0" style="width: 30px;float: left;height: 30px;" id="toPage"> <a href="javascript:gotoPageTO()">跳</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
+
+
+            <%--<nav class="weui-t_c" aria-label="Page navigation">--%>
+                <%--<ul class="pagination">--%>
+                    <%--<li><a href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>--%>
+                    <%--<li class="active"><a href="#">1</a></li>--%>
+                    <%--<li><a href="#">2</a></li>--%>
+                    <%--<li><a href="#">3</a></li>--%>
+                    <%--<li><a href="#">4</a></li>--%>
+                    <%--<li><a href="#">5</a></li>--%>
+                    <%--<li><a href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>--%>
+                <%--</ul>--%>
+            <%--</nav>--%>
+
         </div>
-        <div class="col-sm-1"></div>
+    </div>
     </div>
 </div>
