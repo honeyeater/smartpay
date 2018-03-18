@@ -8,7 +8,7 @@
                 <input type="hidden" name="validFlag" id="validFlag" value="${frontUser.validFlag}">
                 <div class="row">
                     <div class="col-md-6 weui-b_r">
-                        <ul class="hy_h home_h weui-pt15">
+                        <ul class="hy_h home_h weui-pt11">
                             <li class="clearfix">
                                 <span class="weui-fl"><i class="hy weui-dnb"></i> 会员级别</span>
                                 <span class="weui-fr">
@@ -38,10 +38,14 @@
                                 <span class="weui-fl"><i class="r1 weui-dnb"></i> R钱包</span>
                                 <span class="weui-fr">${userMember.backWallet}</span>
                             </li>
+                            <li class="clearfix">
+                                <span class="weui-fl"><i class="r1 weui-dnb"></i> 剩余R钱包额度</span>
+                                <span class="weui-fr">${userMember.sumLimit-userMember.useLimit}</span>
+                            </li>
                         </ul>
                     </div>
                     <div class="col-md-6">
-                        <ul class="hy_h home_h weui-pt15">
+                        <ul class="hy_h home_h weui-pt11">
                             <li class="clearfix">
                                 <span class="weui-fl"><i class="zh weui-dnb"></i> 账户总值</span>
                                 <span class="weui-fr">${userMember.sumAmount}</span>
@@ -58,6 +62,7 @@
                                 <span class="weui-fl"><i class="jh weui-dnb"></i> 激活资金</span>
                                 <span class="weui-fr">${userMember.activeCost}</span>
                             </li>
+
                         </ul>
                     </div>
                 </div>

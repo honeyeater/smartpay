@@ -25,4 +25,6 @@ public interface FrontUserRegisterServiceI extends CommonService{
 
 	public List<FrontUserRegisterEntity> queryParentEntity(String userName) throws Exception;
 
+    public List<FrontUserRegisterEntity> queryChildEntity(String userName) throws Exception;
+
 }

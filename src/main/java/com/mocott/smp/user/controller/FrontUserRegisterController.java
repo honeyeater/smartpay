@@ -402,7 +402,7 @@ public class FrontUserRegisterController extends BaseController {
 							if(userRegister.getUserName().equals(frontUserRegister.getIntroducer())) {
 								frontUserMemberEntity.setIntroNums(""+introNums);
 							}
-							frontUserMemberEntity.setTeamNums(""+introNums);
+							frontUserMemberEntity.setTeamNums(""+teamNums);
 							if(introNums>20) {
 								frontUserMemberEntity.setUserLevel("2");
 							}

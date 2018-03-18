@@ -88,6 +88,7 @@ public class TSIndexServiceImpl extends CommonServiceImpl implements TSIndexServ
                     Date finalEndTime = DateUtils.getDateAdd(Integer.parseInt(StringUtil.isNotEmpty(finalEnd)?finalEnd:"0"), waitEndTime);
                     mills = DateUtils.dateDiffForDate('s', finalEndTime, new Date());
                     String wait = orderInjectInfoEntity.getWaitInternal();
+                    orderInjectInfoEntity.setVfield5("0");
                     double waitt = Double.parseDouble(StringUtil.isNotEmpty(wait)?wait:"20");
                     interest = orderInjectInfoEntity.getRestRate()*orderInjectInfoEntity.getOrderMoney()/100/24 * waitt;
                 }

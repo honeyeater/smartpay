@@ -555,7 +555,8 @@ public class OrderInjectInfoController extends BaseController {
 							j.setMsg(message);
 							j.setSuccess(false);
 						} else {
-                            double f1 = getPayNum(orderInject.getFirstPay(), price);
+                            double sumFee= orderInject.getFirstPay()/100;
+                            double f1 = getPayNum(orderInject.getFirstPay()+sumFee, price);
                             Map<String, Object> attrs = new HashMap<String, Object>();
                             attrs.put("payNum", f1);
                             attrs.put("price", price);
@@ -571,7 +572,8 @@ public class OrderInjectInfoController extends BaseController {
 							j.setMsg(message);
 							j.setSuccess(false);
 						} else {
-                            double f1 = getPayNum(orderInject.getEndPay(), price);
+                            double sumFee= orderInject.getEndPay()/100;
+                            double f1 = getPayNum(orderInject.getEndPay()+sumFee, price);
                             Map<String, Object> attrs = new HashMap<String, Object>();
                             attrs.put("payNum", f1);
                             attrs.put("price", price);
@@ -649,7 +651,8 @@ public class OrderInjectInfoController extends BaseController {
                 j.setSuccess(false);
             } else {
 				if("1".equals(orderType)) {
-				    double f1 = getPayNum(orderInject.getFirstPay(), price);
+                    double sumFee= orderInject.getFirstPay()/100;
+				    double f1 = getPayNum(orderInject.getFirstPay()+sumFee, price);
 				    if(mynum<f1) {
                         message = "您的USDT数量不足,请于交易中心买入!";
                         j.setMsg(message);
@@ -712,7 +715,8 @@ public class OrderInjectInfoController extends BaseController {
 						j.setSuccess(true);
 					}
 				} else if("2".equals(orderType)) {
-                    double f1 = getPayNum(orderInject.getEndPay(), price);
+                    double sumFee= orderInject.getEndPay()/100;
+                    double f1 = getPayNum(orderInject.getEndPay()+sumFee, price);
                     if(mynum<f1) {
                         message = "您的USDT数量不足,请于交易中心买入!";
                         j.setMsg(message);

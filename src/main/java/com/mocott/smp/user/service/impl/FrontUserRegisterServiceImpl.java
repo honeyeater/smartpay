@@ -158,8 +158,20 @@ public class FrontUserRegisterServiceImpl extends CommonServiceImpl implements F
 	}
 
 
+    /**
+     * 根据用户名获取下面推荐的人
+     * @return
+     */
+    @Override
+    public List<FrontUserRegisterEntity> queryChildEntity(String userName) {
+        String query = "select * from front_user_register u where FIND_IN_SET(u.introducer, getChildList('"+userName+"'))";
+        Query queryObject = getSession().createSQLQuery(query).addEntity(FrontUserRegisterEntity.class);
+        List<FrontUserRegisterEntity> users = queryObject.list();
+        return users;
+    }
 
-	/**
+
+    /**
 	 * 新增操作增强业务
 	 * @param t
 	 * @return

@@ -11,7 +11,7 @@
             <div class="modal-body">
                 <form method="post" id="orderPayFrom">
                     <div class="weui-pb20">
-                        <table width="100%" class="weui-mt10">
+                        <table width="100%" class="weui-mt10" style="font-size: 14px;">
                             <tr>
                                 <td class="weui-pb15 weui-t_r" width="120">支付方式：</td>
                                 <td class="weui-pb15 weui-p_r"><span class="p_select" style="right:8px;"><i class="glyphicon glyphicon-menu-down"></i></span>
@@ -31,7 +31,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="weui-pb15 weui-t_r">USDT支付数量：</td>
+                                <td class="weui-pb15 weui-t_r">USDT支付数量&nbsp;<br>(含1%手续费)：</td>
                                 <td class="weui-pb15">
                                     <input class="form-control" id="payUsdtNum" name="payUsdtNum" type="text" value="" readonly>
                                 </td>
