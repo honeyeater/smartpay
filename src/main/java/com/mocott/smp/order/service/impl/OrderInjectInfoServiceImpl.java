@@ -9,6 +9,7 @@ import com.mocott.smp.user.entity.FrontUserRegisterEntity;
 import com.mocott.smp.user.service.FrontUserMemberServiceI;
 import com.mocott.smp.user.service.FrontUserRegisterServiceI;
 import com.mocott.smp.util.OrderConstant;
+import com.mocott.smp.util.SmsSendUtil;
 import org.hibernate.Query;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import org.jeecgframework.core.util.ApplicationContextUtil;
@@ -63,7 +64,7 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
                 OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList01.get(i);
                 int firstI = (orderInjectInfoEntity.getFirstEndInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getFirstEndInternal()) : 8);
                 int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getOrderTime());
-                if(diffD > firstI) {
+                if(diffD >= firstI) {
                     FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
                     frontUserRegisterEntity.setValidFlag("0");
                     frontUserRegisterEntity.setVfield5("1"); //首付款未支付被冻结
@@ -78,9 +79,9 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 		if(orderInjectInfoEntityList02 != null && orderInjectInfoEntityList02.size()>0) {
 			for (int i=0; i<orderInjectInfoEntityList02.size(); i++) {
 				OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList02.get(i);
-				int finalI = (orderInjectInfoEntity.getFirstEndInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getFirstEndInternal()) : 12);
+				int finalI = (orderInjectInfoEntity.getVfield6() != null ? Integer.parseInt(orderInjectInfoEntity.getVfield6()) : 12);
 				int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getWaitEndTime());
-                if(diffD > finalI) {
+                if(diffD >= finalI) {
                     FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
                     frontUserRegisterEntity.setValidFlag("0");
                     frontUserRegisterEntity.setVfield5("2"); //尾款未支付被冻结
@@ -97,9 +98,21 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
                 OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList04.get(i);
                 int waitI = (orderInjectInfoEntity.getWaitInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getWaitInternal()) : 480);
                 int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getWaitStartTime());
-                if(diffD > waitI) {
+                if(diffD >= waitI) {
                     orderInjectInfoEntity.setOrderStatus(OrderConstant.Order_Final_Pay);
                     this.saveOrUpdate(orderInjectInfoEntity);
+                    // 发送短信
+                    try {
+                        FrontUserRegisterEntity userRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());
+                        if (userRegisterEntity != null) {
+                            String sendContent = "JR尾款支付提醒：您有一笔订单尾款需要支付，请登陆JR查询，并在24小时内支付尾款。";
+                            String phoneNo = userRegisterEntity.getPhoneno();
+                            String result = SmsSendUtil.send(sendContent, phoneNo);
+                            System.out.println("-----尾款支付短信提醒-----"+result);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -112,7 +125,7 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
                 OrderInjectInfoEntity orderInjectInfoEntity = orderInjectInfoEntityList03.get(i);
                 int saveI = (orderInjectInfoEntity.getSaveInternal() != null ? Integer.parseInt(orderInjectInfoEntity.getSaveInternal()) : 360);
                 int diffD = DateUtils.dateDiffForDate('h', now, orderInjectInfoEntity.getEndPayTime());
-                if(diffD > saveI) {
+                if(diffD >= saveI) {
                     List<OrderInjectInfoEntity> orderInjectInfoEntityListnew = this.getUndoneList(orderInjectInfoEntity.getUsername());
                     if(orderInjectInfoEntityListnew == null || orderInjectInfoEntityListnew.size()==0 || orderInjectInfoEntityListnew.size()==1) {
                         FrontUserRegisterEntity frontUserRegisterEntity = frontUserRegisterServiceI.queryEntityByUserName(orderInjectInfoEntity.getUsername());

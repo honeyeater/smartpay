@@ -178,7 +178,24 @@ public class OrderDrawInfoController extends BaseController {
 			FrontUserMemberEntity userMember = frontUserMemberServiceI.queryEntityByUserName(userName);
 			String phoneNo = userRegister.getPhoneno();
 			FrontVerifyCodeEntity fvc = getHasValid(smsCode, "2", phoneNo);
-			double firstPayRatio = 100.00;
+            List<OrderDrawInfoEntity> orderDrawInfos = orderDrawInfoService.getListByUserName(userName);
+
+            //判断上次提取时间距现在是否在72小时内
+            OrderDrawInfoEntity lastOrderDrawInfo = null;
+            if(orderDrawInfos != null && orderDrawInfos.size()>0) {
+                lastOrderDrawInfo = orderDrawInfos.get(0);
+            }
+            boolean inThreeDays = false;
+            if(lastOrderDrawInfo == null) {
+                inThreeDays = false;
+            } else if(lastOrderDrawInfo.getOrderTime() != null){
+                int hours = DateUtils.dateDiffForDate('h', new Date(), lastOrderDrawInfo.getOrderTime());
+                if(hours < 72) {
+                    inThreeDays = true;
+                }
+            }
+
+            double firstPayRatio = 100.00;
 			double baseTimes = 1.2;
 			//配置的提取基础比例
 			TSConfigcodeEntity tsConfigcodeEntity = tSConfigcodeServiceI.getConfigValue(OrderConstant.Sys_Base_UpTimes);
@@ -228,7 +245,10 @@ public class OrderDrawInfoController extends BaseController {
 			} else if ((userMember.getIntroWallet() < priceZTD || userMember.getCouponWallet() < priceBXD) && "4".equals(drawType)) {
 				j.setMsg("直推与本息钱包金额小于提取金额,请确认!");
 				j.setSuccess(false);
-			} else{
+			} else if (inThreeDays) {
+                j.setMsg("距上次订单提取72小时后才能提取,请确认!");
+                j.setSuccess(false);
+            } else{
 				//产生提出订单
 				MakeOrderNum orderNum = new MakeOrderNum();
 				OrderDrawInfoEntity orderDrawInfo = new OrderDrawInfoEntity();
