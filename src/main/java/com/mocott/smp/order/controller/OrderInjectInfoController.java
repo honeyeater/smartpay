@@ -253,8 +253,9 @@ public class OrderInjectInfoController extends BaseController {
 
 			//用户订单列表
 			List<OrderInjectInfoEntity> injectInfos = orderInjectInfoService.getListByUser(userName);
-			//有首付款\尾款未支付完成的订单,请完成后再次注入资金
+			//有首付款未支付完成的订单,请完成后再次注入资金
 			List<OrderInjectInfoEntity> unPayList = orderInjectInfoService.getListByUndonePay(userName);
+			List<OrderInjectInfoEntity> unPayList2 = orderInjectInfoService.getListByUndonePay2(userName);
 			//在保存期内才可以注入资金
 			List<OrderInjectInfoEntity> saveList = orderInjectInfoService.getListByUndoneSave(userName);
 			//是否已注入第一单
@@ -262,6 +263,12 @@ public class OrderInjectInfoController extends BaseController {
 			boolean hasFirst = false;
 			if(firstList != null && firstList.size()>0) {
 				hasFirst = true;
+			}
+			boolean hasTQQB = false; // 是否有可提取的钱包
+			if(userMemberEntity != null) {
+				if(userMemberEntity.getNfield3()>0 || userMemberEntity.getNfield4()>0) {
+					hasTQQB = true;
+				}
 			}
 
 			//是否有未提取的订单
@@ -276,6 +283,9 @@ public class OrderInjectInfoController extends BaseController {
 				j.setMsg("登录用户信息异常,请重新登录!");
 				j.setSuccess(false);
 			} else if(unPayList != null && unPayList.size()>0) {
+				j.setMsg("有首付款未支付完成的订单,请等待完成后再注入资金!");
+				j.setSuccess(false);
+			} else if(unPayList2 != null && unPayList2.size()>0 && !hasTQQB) {
 				j.setMsg("有首付款或尾款未支付完成的订单,请等待完成后再注入资金!");
 				j.setSuccess(false);
 			} else if(hasTQ) {
@@ -858,6 +868,13 @@ public class OrderInjectInfoController extends BaseController {
                     hasUndoneOrder = true;
                 }
             }
+			boolean hasTQQB = false;
+			if(userMember != null) {
+				if(userMember.getNfield3()>0 || userMember.getNfield4()>0) {
+					hasTQQB = true;
+				}
+			}
+
 
 			List<OrderInjectInfoEntity>  orderInList = orderInjectInfoService.getListByOrderCode(orderCode, userName);
 			OrderInjectInfoEntity orderInject = null;
@@ -870,6 +887,10 @@ public class OrderInjectInfoController extends BaseController {
 				j.setSuccess(false);
 			} else if(!hasUndoneOrder){
 				message = "订单在保存期请先注入资金，否则会被封号!";
+				j.setMsg(message);
+				j.setSuccess(false);
+			} else if(hasTQQB){
+				message = "有钱包未提取,请先提取后再转入钱包!";
 				j.setMsg(message);
 				j.setSuccess(false);
 			} else {

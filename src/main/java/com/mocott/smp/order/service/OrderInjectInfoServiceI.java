@@ -24,6 +24,8 @@ public interface OrderInjectInfoServiceI extends CommonService{
 
 	public List<OrderInjectInfoEntity> getListByUndonePay(String userName) throws Exception;
 
+	public List<OrderInjectInfoEntity> getListByUndonePay2(String userName) throws Exception;
+
 	public List<OrderInjectInfoEntity> getListByUndoneSave(String userName) throws Exception;
 
 	public List<OrderInjectInfoEntity> getListByFirst(String userName) throws Exception;

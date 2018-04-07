@@ -252,6 +252,20 @@ public class OrderInjectInfoServiceImpl extends CommonServiceImpl implements Ord
 	 */
 	@Override
 	public List<OrderInjectInfoEntity> getListByUndonePay(String userName) throws Exception {
+		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01')  and o.username = :userName";
+		Query queryObject = getSession().createQuery(query);
+		queryObject.setParameter("userName", userName);
+		List<OrderInjectInfoEntity> orderInjectInfoEntityList = queryObject.list();
+		return orderInjectInfoEntityList;
+	}
+
+	/**
+	 * 获取未完成的资金注入的订单
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<OrderInjectInfoEntity> getListByUndonePay2(String userName) throws Exception {
 		String query = " from OrderInjectInfoEntity o where o.orderStatus in ('01','02','04')  and o.username = :userName";
 		Query queryObject = getSession().createQuery(query);
 		queryObject.setParameter("userName", userName);
