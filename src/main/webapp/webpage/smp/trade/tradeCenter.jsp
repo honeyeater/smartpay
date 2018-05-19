@@ -13,14 +13,14 @@
                 <%--<td>24H成交量<p class="weui-f18">0.000 / 0.000</p></td>--%>
                 <td class="weui-pl10" style="border-left:1px dashed #7a6c4e;">我的usdt数量<p class="weui-f18">${userUsdtInfo.num}</p></td>
                 <td>我的usdt价值<p class="weui-f18 weui-red">${myprice}</p></td>
-                <td><a href="#" class="btn btn-primary weui-f16 weui-pl30 weui-pr30 weui-pt10 weui-pb10" data-toggle="modal" data-target="#myModal">立即转账</a></td>
+                <%--<td><a href="#" class="btn btn-primary weui-f16 weui-pl30 weui-pr30 weui-pt10 weui-pb10" data-toggle="modal" data-target="#myModal">立即转账</a></td>--%>
             </tr>
         </table>
     </div>
     <ul class="weui-white weui-lh30 m_block weui-d_n">
         <li>我的usdt数量： <span class="weui-f18">${userUsdtInfo.num}</span></li>
         <li>我的usdt价值：<span class="weui-f18 weui-red">${myprice}</span></li>
-        <li class="weui-mt10"><a href="#" class="btn btn-primary weui-f16 weui-pl30 weui-pr30 weui-pt10 weui-pb10" data-toggle="modal" data-target="#myModal">立即转账</a></li>
+        <%--<li class="weui-mt10"><a href="#" class="btn btn-primary weui-f16 weui-pl30 weui-pr30 weui-pt10 weui-pb10" data-toggle="modal" data-target="#myModal">立即转账</a></li>--%>
     </ul>
     <div class="row">
         <div class="col-md-6 weui-pt15">

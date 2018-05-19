@@ -6,7 +6,7 @@
         <h3 class="weui-f16 weui-f_b title">激活码管理</h3>
         <div class=" weui-p15 box_h">
             <p><a href="#" class="btn btn-primary btn-primary1" data-toggle="modal" data-target="#doActiveB" id="doActiveButton">会员激活</a>
-                <span class="weui-red weui-ml10">请联系网站客服人员进行购买，购买后进行激活！平台统一售价，体验版100元，正式版500元！</span></p>
+                <span class="weui-red weui-ml10">请联系网站客服人员进行购买，购买后进行激活！平台统一售价，体验版100元，正式版500元！用户被冻结情况,请重新注册账户</span></p>
             <div class="table-responsive weui-mt15">
                 <table class="table table-hover table-striped weui-bb" style="font-size: 14px;">
                     <tr>
@@ -111,7 +111,7 @@
     $(function() {
         var validFlag = $("#currentUserValidFlag").val();
         if(validFlag != "1") {
-            layer.alert("用户被冻结,请客服人员购买激活码激活账户!", {
+            layer.alert("用户被冻结,请重新注册账户!", {
                 offset:'25%',
                 closeBtn: 0
             });
